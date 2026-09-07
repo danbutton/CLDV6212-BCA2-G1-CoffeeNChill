@@ -1,0 +1,53 @@
+## ---------------------------------------------------------------------------
+## CoffeeNChill - CLDV6212
+## ---------------------------------------------------------------------------
+
+# Build output
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Azure Functions local settings - CONTAINS SECRETS, NEVER COMMIT
+local.settings.json
+
+# Azurite emulator data
+__azurite_db*.json
+__blobstorage__/
+__queuestorage__/
+__tablestorage__/
+.azurite/
+
+# Azure Functions
+.python_packages/
+bin
+obj
+appsettings.Development.json
+
+# NuGet
+*.nupkg
+packages/
+.nuget/
+
+# OS noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Postman working files (only the exported collection in /docs is committed)
+*.postman_collection.local.json
+
+# Video / large media working files
+*.mp4
+*.mov
+*.mkv
