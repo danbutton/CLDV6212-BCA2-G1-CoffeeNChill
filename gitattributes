@@ -1,0 +1,16 @@
+# Normalise line endings so Windows/macOS/Linux contributors don't
+# generate whole-file diffs on every commit.
+* text=auto
+
+*.cs        text diff=csharp
+*.csproj    text
+*.json      text
+*.md        text
+*.yml       text
+*.sh        text eol=lf
+Dockerfile  text eol=lf
+
+# Append-only logs: keep both sides of a conflict instead of failing.
+# Never apply union merge to source files.
+docs/meeting-minutes.md  merge=union
+docs/ai-usage-log.md     merge=union
