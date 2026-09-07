@@ -1,0 +1,31 @@
+# Build artifacts - rebuilt inside the container
+**/bin/
+**/obj/
+**/out/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+**/*.user
+
+# Secrets - must never enter an image layer
+**/local.settings.json
+
+# Azurite emulator data
+**/__azurite_db*.json
+**/__blobstorage__/
+**/__queuestorage__/
+**/__tablestorage__/
+
+# Version control and docs - not needed at runtime
+.git/
+.gitignore
+.gitattributes
+docs/
+README.md
+*.md
+
+# Docker files themselves
+Dockerfile
+.dockerignore
