@@ -140,12 +140,7 @@ The exported collection and environment live in [`/docs`](./docs).
 .
 ├── src/
 │   └── CoffeeNChill.Functions/     # Azure Functions project
-├── docs/
-│   ├── CONTRIBUTING.md             # Shared-file protocol and Git workflow
-│   ├── meeting-minutes.md          # Running record of team meetings
-│   ├── ai-usage-log.md             # AI tool usage per assignment instruction 3
-│   ├── architecture.png            # System architecture diagram
-│   └── *.postman_*.json            # Exported Postman collection & environment
+├── CONTRIBUTING.md             # Shared-file protocol and Git workflow
 ├── .gitignore
 ├── .gitattributes
 ├── .dockerignore
