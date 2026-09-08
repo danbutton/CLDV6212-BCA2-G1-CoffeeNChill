@@ -1,8 +1,8 @@
-# CoffeeNChill — Canteen Management System
+# CoffeeNChill - Canteen Management System
 
 **Module:** CLDV6212 — Cloud Development B
-**Institution:** The Independent Institute of Education (Varsity College)
-**Assessment:** Portfolio of Evidence — Part 1
+**Institution:** The Independent Institute of Education (Emeris University)
+**Assessment:** Portfolio of Evidence - Part 1
 **Group:** G1
 
 A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handwritten order slips and filing-cabinet documents with Azure Table Storage, Azure File Shares and containerised HTTP-triggered Azure Functions.
@@ -19,10 +19,10 @@ A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handw
 
 | Member | Student No. | Role | Focus |
 |---|---|---|---|
-| Daniel Button | ST10491642 | D | Containerisation, testing, documentation, integration |
-| _TBC_ | _TBC_ | A | Domain model & Table Storage repository |
-| _TBC_ | _TBC_ | B | Menu HTTP functions & error handling |
-| _TBC_ | _TBC_ | C | Azure File Share & document endpoints |
+| Kyle | ST10473747 | A | Domain model & Table Storage repository |
+| Evan | ST10482786 | B | Menu HTTP functions & error handling |
+| Saveer |  ST10487403 | C | Azure File Share & document endpoints |
+| Daniel | ST10491642 | D | Containerisation, testing, documentation, integration |
 
 ---
 
