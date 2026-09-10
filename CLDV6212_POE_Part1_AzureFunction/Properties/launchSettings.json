@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "CLDV6212_POE_Part1_AzureFunction": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7197"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "containerRunArguments": "--init",
+      "httpPort": 33368,
+      "useSSL": false
+    }
+  }
+}
