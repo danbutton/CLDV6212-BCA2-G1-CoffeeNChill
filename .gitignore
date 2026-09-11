@@ -51,3 +51,7 @@ desktop.ini
 *.mp4
 *.mov
 *.mkv
+
+# macOS
+.DS_Store
+**/.DS_Store
