@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    CoffeeNChill Azure Functions — isolated worker model, .NET 8.
+
+    Created manually rather than by `func init`, so no Azure Functions Core
+    Tools installation is required to build. The container uses the official
+    Functions runtime image, which supplies the host.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+
+    <!-- Isolated worker runs as its own process, so it needs an entry point. -->
+    <OutputType>Exe</OutputType>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>CoffeeNChill.Functions</RootNamespace>
+    <AssemblyName>CoffeeNChill.Functions</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- host.json ships with the build output; the host reads it at startup. -->
+    <None Update="host.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <!--
+      local.settings.json is copied locally for development but NEVER published.
+      CopyToPublishDirectory=Never keeps credentials out of the container image.
+    -->
+    <None Update="local.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Data.Tables" Version="12.12.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.29.2" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.52.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.1.0" />
+  </ItemGroup>
+
+</Project>
