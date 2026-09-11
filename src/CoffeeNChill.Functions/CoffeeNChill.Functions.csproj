@@ -22,6 +22,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="local.settings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- host.json ships with the build output; the host reads it at startup. -->
     <None Update="host.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -32,7 +36,7 @@
       CopyToPublishDirectory=Never keeps credentials out of the container image.
     -->
     <None Update="local.settings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
