@@ -3,7 +3,7 @@ using Azure.Storage.Blobs.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace CoffeeNChill.Functions.Repositories;
+namespace CLDV6212_POE_Part1_AzureFunction.Repositories;
 
 /// <summary>
 /// Azure Blob Storage implementation of <see cref="IDocumentRepository"/>,

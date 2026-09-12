@@ -1,4 +1,4 @@
-namespace CoffeeNChill.Functions.Repositories;
+namespace CLDV6212_POE_Part1_AzureFunction.Repositories;
 
 /// <summary>Metadata describing one blob in the staff-docs container.</summary>
 public record StaffDocumentInfo(

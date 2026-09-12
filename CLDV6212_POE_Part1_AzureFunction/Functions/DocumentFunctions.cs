@@ -1,10 +1,10 @@
-﻿using CoffeeNChill.Functions.Repositories;
+﻿using CLDV6212_POE_Part1_AzureFunction.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace CoffeeNChill.Functions.Functions;
+namespace CLDV6212_POE_Part1_AzureFunction.Functions;
 
 /// <summary>
 /// HTTP endpoints for staff document management (Blob Storage backed).
