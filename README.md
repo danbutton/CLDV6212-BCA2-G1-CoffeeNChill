@@ -121,12 +121,42 @@ The exported collection and environment live in [`/docs`](./docs).
 | Member | Student No. | Responsibilities | Commits | Video segment |
 |---|---|---|---|---|
 | Daniel Button | ST10491642 | Docker, Docker Hub, Postman suite, README, integration | _TBC_ | _TBC_ |
-
+| Saveer Singh | ST10487403 | Blob Storage, HTTP Endpoints | _TBC_ | _TBC_ |
 ## AI Usage Declaration
 
 > _To be completed before submission. See [`/docs/ai-usage-log.md`](./docs/ai-usage-log.md) for the running record._
 
 ## References
+
+Microsoft (2026) Quickstart: Azure Blob Storage client library for .NET. Available at:
+< https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-dotnet >(Accessed: 10 September 2026).
+
+Stack Overflow (2020) How upload blob in Azure Blob Storage with specified ContentType with .NET v12 SDK? Available at:
+< https://stackoverflow.com/questions/59945376/how-upload-blob-in-azure-blob-storage-with-specified-contenttype-with-net-v12-s > (Accessed: 10 September 2026).
+
+Microsoft (2025) Use the Azurite emulator for local Azure Storage development. Available at: 
+< https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite >(Accessed: 10 September 2026).
+
+Microsoft (2023) Azure Blob storage output binding for Azure Functions. Available at: 
+< https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-output >(Accessed: 10 September 2026).
+
+Microsoft (2023) Class BlobHttpHeaders | Azure SDK for .NET. Available at: 
+< https://azuresdkdocs.z19.web.core.windows.net/dotnet/Azure.Storage.Blobs/12.23.0/api/Azure.Storage.Blobs.Models/Azure.Storage.Blobs.Models.BlobHttpHeaders.html >(Accessed: 10 September 2026).
+
+Microsoft (2026) Guide for running C# Azure Functions in an isolated worker process. Available at:
+< https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide?tabs=ihostapplicationbuilder%2Cconfig%2Cwindows >(Accessed: 12 September 2026).
+
+DotnetUstad (no date) C# Function Documentation and Comments. Available at:
+< https://dotnetustad.com/c-sharp/function-documentation-and-comments > (Accessed: 12 September 2026).
+
+Microsoft (2024) In the Azure functions isolated process model, how can one return a stream without buffering all content first? Available at:
+< https://learn.microsoft.com/en-us/answers/questions/1418946/in-the-azure-functions-isolated-process-model-how > (Accessed: 12 September 2026).
+
+Microsoft (2019) FileResult.FileDownloadName Property (System.Web.Mvc). Available at: 
+< https://learn.microsoft.com/en-us/dotnet/api/system.web.mvc.fileresult.filedownloadname?view=aspnet-mvc-5.2 > (Accessed: 12 September 2026).
+
+ASP Today (2026) File Upload and Processing in ASP.NET Core: Streaming, Validation, and Cloud Storage. Available at:
+< https://www.asptoday.com/p/file-upload-and-processing-in-aspnet > (Accessed: 12 September 2026).
 
 > _IEEE style. To be completed._
 
