@@ -61,3 +61,16 @@ desktop.ini
 
 # Tooling
 .qodo/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+
+# Build output
+[Bb]in/
+[Oo]bj/
+
+# Azure Functions secrets
+local.settings.json
+**/local.settings.json
