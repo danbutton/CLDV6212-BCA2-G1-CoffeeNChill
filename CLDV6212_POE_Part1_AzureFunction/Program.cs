@@ -9,13 +9,12 @@ using OpenTelemetry;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
-// Enables the ASP.NET Core HTTP integration, so functions can bind
-// HttpRequest and return IActionResult rather than HttpResponseData.
+// Enables the ASP.NET Core HTTP integration so functions can bind
+// HttpRequest and return IActionResult.
 builder.ConfigureFunctionsWebApplication();
 
-// Registered as a singleton: BlobContainerClient is thread-safe and designed
-// to be long-lived, so creating one per request would waste connections.
-// DocumentFunctions receives it through constructor injection.
+// Singleton: BlobContainerClient is thread-safe and designed to be
+// long-lived. DocumentFunctions receives this via constructor injection.
 builder.Services.AddSingleton<IDocumentRepository, BlobDocumentRepository>();
 
 if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING")))
