@@ -9,6 +9,7 @@ using CoffeeNChill.Services;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 builder.Services.AddSingleton<MenuItemService>();
+builder.Services.AddSingleton<DocumentStorageService>();
 
 builder.ConfigureFunctionsWebApplication();
 

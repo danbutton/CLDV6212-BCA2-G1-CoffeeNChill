@@ -6,10 +6,13 @@
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "launchUrl": "http://localhost:30013",
       "containerRunArguments": "--init",
       "httpPort": 30013,
-      "useSSL": false
+      "useSSL": false,
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "http://+:80"
+      }
     }
   }
 }
