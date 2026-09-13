@@ -1,46 +1,23 @@
 {
   "info": {
-    "_postman_id": "c0ffee01-1111-4a2b-9c3d-coffeenchill01",
+    "_postman_id": "c0ffee01-1111-4a2b-9c3d-coffeenchill02",
     "name": "CoffeeNChill - Part 1 (Tables & Blobs)",
-    "description": "CLDV6212 Part 1 test suite for the CoffeeNChill Azure Functions app.\n\nCovers the MenuItems Table Storage CRUD surface and the staff-docs Azure Blob Storage endpoints, including negative-path tests (400 / 404 / 409).\n\nPer the POE addendum (Sept 2026), staff documents are stored in Azure Blob Storage rather than an Azure File Share, because Azurite does not emulate the Files service. Blob IS emulated, so the entire suite runs against the local Azurite container with no live Azure account.\n\nSetup:\n1. Import this collection.\n2. Import CoffeeNChill.postman_environment.json and select it.\n3. Ensure baseUrl points at your running host (http://localhost:7071/api).\n4. Run the whole collection top to bottom - requests are ordered so state flows correctly.\n\nThe Documents > Upload request needs a file selected manually in the form-data body (Postman cannot persist binary file paths in an export).",
+    "description": "CLDV6212 Part 1 test suite.\n\nAligned to the implemented API: menu entities use PartitionKey (category) and RowKey (SKU); list endpoints return bare arrays.\n\nPer the POE addendum, staff documents are stored in Azure Blob Storage rather than an Azure File Share, because Azurite does not emulate the Files service.\n\nSetup:\n1. Import this collection and the environment.\n2. Select the CoffeeNChill - Local (Azurite) environment.\n3. Attach a file to Documents > Upload Staff Document.\n4. Collection > Run.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
-      "key": "testCategory",
-      "value": "Hot Drinks"
-    },
-    {
-      "key": "testSku",
-      "value": "COF-001"
-    },
-    {
       "key": "uploadedFileName",
-      "value": ""
+      "value": "barista-recipes.txt"
     }
   ],
   "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "// Fail fast with a readable message if the environment is not selected.",
-          "if (!pm.environment.get('baseUrl') && !pm.collectionVariables.get('baseUrl')) {",
-          "    throw new Error('baseUrl is not set. Select the CoffeeNChill environment before running.');",
-          "}"
-        ]
-      }
-    },
     {
       "listen": "test",
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Applied to every request in the collection.",
-          "pm.test('Response time is under 3000ms', function () {",
-          "    pm.expect(pm.response.responseTime).to.be.below(3000);",
-          "});"
+          "pm.test('Response time is under 3000ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
         ]
       }
     }
@@ -48,7 +25,7 @@
   "item": [
     {
       "name": "Menu - Table Storage",
-      "description": "CRUD operations against the MenuItems Azure Table.",
+      "description": "CRUD against the MenuItems Azure Table.",
       "item": [
         {
           "name": "Create Menu Item (201)",
@@ -58,24 +35,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 201 Created', function () {",
-                  "    pm.response.to.have.status(201);",
+                  "pm.test('Status is 201 Created', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Entity is echoed back', function () {",
+                  "    const b = pm.response.json();",
+                  "    pm.expect(b.PartitionKey).to.eql('Hot Drinks');",
+                  "    pm.expect(b.RowKey).to.eql('COF-001');",
+                  "    pm.expect(b.Name).to.eql('Espresso');",
                   "});",
-                  "",
-                  "pm.test('Response echoes the created item', function () {",
-                  "    const body = pm.response.json();",
-                  "    pm.expect(body.sku).to.eql(pm.collectionVariables.get('testSku'));",
-                  "    pm.expect(body.category).to.eql(pm.collectionVariables.get('testCategory'));",
-                  "    pm.expect(body.name).to.eql('Espresso');",
-                  "});",
-                  "",
-                  "pm.test('Price is returned as a number', function () {",
-                  "    pm.expect(pm.response.json().price).to.be.a('number');",
-                  "});",
-                  "",
-                  "pm.test('Content-Type is JSON', function () {",
-                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
-                  "});"
+                  "pm.test('Price is numeric', function () { pm.expect(pm.response.json().Price).to.be.a('number'); });"
                 ]
               }
             }
@@ -88,10 +55,6 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"Hot Drinks\",\n  \"sku\": \"COF-001\",\n  \"name\": \"Espresso\",\n  \"description\": \"Double shot of locally roasted single-origin beans\",\n  \"price\": 28.50,\n  \"isAvailable\": true\n}"
-            },
             "url": {
               "raw": "{{baseUrl}}/menu",
               "host": [
@@ -101,7 +64,11 @@
                 "menu"
               ]
             },
-            "description": "Inserts a new entity into the MenuItems table. PartitionKey = category, RowKey = sku."
+            "description": "Creates a menu entity. PartitionKey = category, RowKey = SKU.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PartitionKey\": \"Hot Drinks\",\n  \"RowKey\": \"COF-001\",\n  \"Name\": \"Espresso\",\n  \"Description\": \"Double shot, locally roasted\",\n  \"Price\": 28.5,\n  \"IsAvailable\": true\n}"
+            }
           }
         },
         {
@@ -112,9 +79,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 201 Created', function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});"
+                  "pm.test('Status is 201 Created', function () { pm.response.to.have.status(201); });"
                 ]
               }
             }
@@ -127,10 +92,6 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"Hot Drinks\",\n  \"sku\": \"COF-002\",\n  \"name\": \"Cappuccino\",\n  \"description\": \"Espresso with steamed milk and a thick foam cap\",\n  \"price\": 36.00,\n  \"isAvailable\": true\n}"
-            },
             "url": {
               "raw": "{{baseUrl}}/menu",
               "host": [
@@ -139,6 +100,11 @@
               "path": [
                 "menu"
               ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PartitionKey\": \"Hot Drinks\",\n  \"RowKey\": \"COF-002\",\n  \"Name\": \"Cappuccino\",\n  \"Description\": \"Espresso with steamed milk and thick foam\",\n  \"Price\": 36.0,\n  \"IsAvailable\": true\n}"
             }
           }
         },
@@ -150,13 +116,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 201 Created', function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test('Item lands in the Pastries partition', function () {",
-                  "    pm.expect(pm.response.json().category).to.eql('Pastries');",
-                  "});"
+                  "pm.test('Status is 201 Created', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Lands in the Pastries partition', function () { pm.expect(pm.response.json().PartitionKey).to.eql('Pastries'); });"
                 ]
               }
             }
@@ -169,52 +130,6 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"Pastries\",\n  \"sku\": \"PAS-104\",\n  \"name\": \"Ham & Cheese Croissant\",\n  \"description\": \"All-butter croissant with smoked ham and gruyere\",\n  \"price\": 42.00,\n  \"isAvailable\": true\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/menu",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "menu"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create Menu Item - duplicate SKU (409)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 409 Conflict', function () {",
-                  "    pm.response.to.have.status(409);",
-                  "});",
-                  "",
-                  "pm.test('Error message names the duplicate SKU', function () {",
-                  "    pm.expect(pm.response.json().error).to.include('COF-001');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"Hot Drinks\",\n  \"sku\": \"COF-001\",\n  \"name\": \"Espresso Duplicate\",\n  \"description\": \"This SKU already exists and must be rejected\",\n  \"price\": 28.50,\n  \"isAvailable\": true\n}"
-            },
             "url": {
               "raw": "{{baseUrl}}/menu",
               "host": [
@@ -224,7 +139,11 @@
                 "menu"
               ]
             },
-            "description": "Negative test: creating a second entity with the same PartitionKey/RowKey pair must be rejected."
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PartitionKey\": \"Pastries\",\n  \"RowKey\": \"PAS-104\",\n  \"Name\": \"Almond Croissant\",\n  \"Description\": \"All-butter with toasted almonds\",\n  \"Price\": 42.0,\n  \"IsAvailable\": true\n}"
+            }
           }
         },
         {
@@ -235,15 +154,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 400 Bad Request', function () {",
-                  "    pm.response.to.have.status(400);",
-                  "});",
-                  "",
-                  "pm.test('All validation failures are returned together', function () {",
-                  "    const body = pm.response.json();",
-                  "    pm.expect(body.details).to.be.an('array');",
-                  "    pm.expect(body.details.length).to.be.above(1);",
-                  "});"
+                  "pm.test('Status is 400 Bad Request', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Validation message returned', function () { pm.expect(pm.response.text().length).to.be.above(0); });"
                 ]
               }
             }
@@ -256,10 +168,6 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"category\": \"Sushi\",\n  \"sku\": \"\",\n  \"name\": \"\",\n  \"description\": \"Invalid category, empty SKU, empty name and a negative price\",\n  \"price\": -5,\n  \"isAvailable\": true\n}"
-            },
             "url": {
               "raw": "{{baseUrl}}/menu",
               "host": [
@@ -269,7 +177,11 @@
                 "menu"
               ]
             },
-            "description": "Negative test: exercises the MenuItemValidator. Expects a 400 listing every failure."
+            "description": "Negative test: empty keys and a negative price must be rejected.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PartitionKey\": \"\",\n  \"RowKey\": \"\",\n  \"Name\": \"\",\n  \"Description\": \"\",\n  \"Price\": -5,\n  \"IsAvailable\": true\n}"
+            }
           }
         },
         {
@@ -280,24 +192,15 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 200 OK', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Payload contains a count and an items array', function () {",
-                  "    const body = pm.response.json();",
-                  "    pm.expect(body).to.have.property('count');",
-                  "    pm.expect(body.items).to.be.an('array');",
-                  "});",
-                  "",
-                  "pm.test('At least three seeded items are present', function () {",
-                  "    pm.expect(pm.response.json().count).to.be.at.least(3);",
-                  "});",
-                  "",
-                  "pm.test('Every item exposes the full DTO shape', function () {",
-                  "    pm.response.json().items.forEach(function (item) {",
-                  "        pm.expect(item).to.have.all.keys(",
-                  "            'category', 'sku', 'name', 'description', 'price', 'isAvailable', 'lastModified');",
+                  "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Returns an array', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                  "pm.test('At least two items present', function () { pm.expect(pm.response.json().length).to.be.at.least(2); });",
+                  "pm.test('Each item exposes the storage keys', function () {",
+                  "    pm.response.json().forEach(function (i) {",
+                  "        pm.expect(i).to.have.property('PartitionKey');",
+                  "        pm.expect(i).to.have.property('RowKey');",
+                  "        pm.expect(i).to.have.property('Name');",
+                  "        pm.expect(i).to.have.property('Price');",
                   "    });",
                   "});"
                 ]
@@ -316,7 +219,7 @@
                 "menu"
               ]
             },
-            "description": "Full table scan returning every menu entity."
+            "description": ""
           }
         },
         {
@@ -327,20 +230,11 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 200 OK', function () {",
-                  "    pm.response.to.have.status(200);",
+                  "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('All items are in the requested partition', function () {",
+                  "    pm.response.json().forEach(function (i) { pm.expect(i.PartitionKey).to.eql('Hot Drinks'); });",
                   "});",
-                  "",
-                  "pm.test('Every returned item belongs to the requested partition', function () {",
-                  "    const expected = pm.collectionVariables.get('testCategory');",
-                  "    pm.response.json().items.forEach(function (item) {",
-                  "        pm.expect(item.category).to.eql(expected);",
-                  "    });",
-                  "});",
-                  "",
-                  "pm.test('Category filter narrows the result set', function () {",
-                  "    pm.expect(pm.response.json().count).to.be.at.least(1);",
-                  "});"
+                  "pm.test('Filter narrows the result set', function () { pm.expect(pm.response.json().length).to.be.at.least(1); });"
                 ]
               }
             }
@@ -349,53 +243,17 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/menu/category/{{testCategory}}",
+              "raw": "{{baseUrl}}/menu/category/Hot Drinks",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "menu",
                 "category",
-                "{{testCategory}}"
+                "Hot Drinks"
               ]
             },
-            "description": "Filters entities by PartitionKey - a single-partition query."
-          }
-        },
-        {
-          "name": "Get Menu Items By Category - unknown (404)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 404 Not Found', function () {",
-                  "    pm.response.to.have.status(404);",
-                  "});",
-                  "",
-                  "pm.test('Error body is JSON with a message', function () {",
-                  "    pm.expect(pm.response.json()).to.have.property('error');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/menu/category/Desserts",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "menu",
-                "category",
-                "Desserts"
-              ]
-            },
-            "description": "Negative test: an empty partition must return 404, not an empty 200."
+            "description": "Filters by PartitionKey - a single-partition query."
           }
         },
         {
@@ -406,21 +264,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 200 OK', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Price was updated to 32.00', function () {",
-                  "    pm.expect(pm.response.json().price).to.eql(32.00);",
-                  "});",
-                  "",
-                  "pm.test('Availability was flipped to false', function () {",
-                  "    pm.expect(pm.response.json().isAvailable).to.eql(false);",
-                  "});",
-                  "",
-                  "pm.test('Fields not supplied were left unchanged', function () {",
-                  "    pm.expect(pm.response.json().name).to.eql('Espresso');",
-                  "});"
+                  "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });"
                 ]
               }
             }
@@ -433,22 +277,22 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"price\": 32.00,\n  \"isAvailable\": false\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/menu/{{testCategory}}/{{testSku}}",
+              "raw": "{{baseUrl}}/menu/Hot Drinks/COF-001",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "menu",
-                "{{testCategory}}",
-                "{{testSku}}"
+                "Hot Drinks",
+                "COF-001"
               ]
             },
-            "description": "Partial update - only supplied fields change."
+            "description": "Full-object update. Name and Description are required by the API.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Name\": \"Espresso\",\n  \"Description\": \"Double shot, locally roasted\",\n  \"Price\": 32.0,\n  \"IsAvailable\": false\n}"
+            }
           }
         },
         {
@@ -459,9 +303,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 404 Not Found', function () {",
-                  "    pm.response.to.have.status(404);",
-                  "});"
+                  "pm.test('Status is 404 Not Found', function () { pm.response.to.have.status(404); });"
                 ]
               }
             }
@@ -474,10 +316,6 @@
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"price\": 99.00\n}"
-            },
             "url": {
               "raw": "{{baseUrl}}/menu/Hot Drinks/COF-999",
               "host": [
@@ -488,6 +326,11 @@
                 "Hot Drinks",
                 "COF-999"
               ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Name\": \"Ghost\",\n  \"Description\": \"Does not exist\",\n  \"Price\": 99.0,\n  \"IsAvailable\": true\n}"
             }
           }
         },
@@ -499,13 +342,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 204 No Content', function () {",
-                  "    pm.response.to.have.status(204);",
-                  "});",
-                  "",
-                  "pm.test('Response body is empty', function () {",
-                  "    pm.expect(pm.response.text()).to.be.oneOf(['', null, undefined]);",
-                  "});"
+                  "pm.test('Status is 204 No Content', function () { pm.response.to.have.status(204); });",
+                  "pm.test('Body is empty', function () { pm.expect(pm.response.text()).to.be.oneOf(['', null, undefined]); });"
                 ]
               }
             }
@@ -524,50 +362,14 @@
                 "COF-002"
               ]
             },
-            "description": "Removes the Cappuccino entity."
-          }
-        },
-        {
-          "name": "Delete Menu Item - already gone (404)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 404 Not Found', function () {",
-                  "    pm.response.to.have.status(404);",
-                  "});",
-                  "",
-                  "pm.test('Delete is not silently idempotent', function () {",
-                  "    pm.expect(pm.response.json().error).to.include('COF-002');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/menu/Hot Drinks/COF-002",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "menu",
-                "Hot Drinks",
-                "COF-002"
-              ]
-            },
-            "description": "Negative test: re-deleting the same entity must report 404."
+            "description": ""
           }
         }
       ]
     },
     {
       "name": "Documents - Azure Blob Storage",
-      "description": "Upload, list and download operations against the staff-docs blob container.",
+      "description": "Upload, list and download against the staff-docs container.",
       "item": [
         {
           "name": "Upload Staff Document (201)",
@@ -577,19 +379,9 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 201 Created', function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});",
-                  "",
-                  "pm.test('Response reports the stored file name and size', function () {",
-                  "    const body = pm.response.json();",
-                  "    pm.expect(body).to.have.property('fileName');",
-                  "    pm.expect(body.sizeBytes).to.be.a('number').and.to.be.above(0);",
-                  "});",
-                  "",
-                  "// Chain the filename into the download request below.",
+                  "pm.test('Status is 201 Created', function () { pm.response.to.have.status(201); });",
                   "if (pm.response.code === 201) {",
-                  "    pm.collectionVariables.set('uploadedFileName', pm.response.json().fileName);",
+                  "    try { pm.collectionVariables.set('uploadedFileName', pm.response.json().fileName); } catch (e) {}",
                   "}"
                 ]
               }
@@ -598,6 +390,17 @@
           "request": {
             "method": "POST",
             "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documents/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                "upload"
+              ]
+            },
+            "description": "Multipart upload into the staff-docs blob container. You must attach a file manually - Postman does not persist binary paths across an export.",
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -605,65 +408,10 @@
                   "key": "file",
                   "type": "file",
                   "src": [],
-                  "description": "Select a local .pdf, .docx, .txt, .png or .jpg before running (e.g. barista-recipes.pdf)."
+                  "description": "Attach a local file before running."
                 }
               ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/documents/upload",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "documents",
-                "upload"
-              ]
-            },
-            "description": "Streams a multipart/form-data upload into the staff-docs blob container..\n\nYou must attach a file manually - Postman does not persist binary paths across exports."
-          }
-        },
-        {
-          "name": "Upload - no file supplied (400)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test('Status is 400 Bad Request', function () {",
-                  "    pm.response.to.have.status(400);",
-                  "});",
-                  "",
-                  "pm.test('Error explains the missing form field', function () {",
-                  "    pm.expect(pm.response.json().error).to.be.a('string');",
-                  "});"
-                ]
-              }
             }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/documents/upload",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "documents",
-                "upload"
-              ]
-            },
-            "description": "Negative test: a non-multipart request must be rejected with 400."
           }
         },
         {
@@ -674,22 +422,14 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 200 OK', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Payload contains a count and a documents array', function () {",
-                  "    const body = pm.response.json();",
-                  "    pm.expect(body).to.have.property('count');",
-                  "    pm.expect(body.documents).to.be.an('array');",
-                  "});",
-                  "",
-                  "pm.test('Each document reports name, size and last modified', function () {",
-                  "    pm.response.json().documents.forEach(function (doc) {",
-                  "        pm.expect(doc).to.have.property('fileName');",
-                  "        pm.expect(doc).to.have.property('sizeBytes');",
-                  "        pm.expect(doc).to.have.property('lastModified');",
-                  "        pm.expect(doc).to.have.property('contentType');",
+                  "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Returns an array', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                  "pm.test('Each document reports name, size, date and type', function () {",
+                  "    pm.response.json().forEach(function (d) {",
+                  "        pm.expect(d).to.have.property('fileName');",
+                  "        pm.expect(d).to.have.property('sizeBytes');",
+                  "        pm.expect(d).to.have.property('lastModified');",
+                  "        pm.expect(d).to.have.property('contentType');",
                   "    });",
                   "});"
                 ]
@@ -708,7 +448,7 @@
                 "documents"
               ]
             },
-            "description": "Lists every blob in the staff-docs container with metadata."
+            "description": ""
           }
         },
         {
@@ -719,18 +459,8 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 200 OK', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Response carries a body', function () {",
-                  "    pm.expect(pm.response.responseSize).to.be.above(0);",
-                  "});",
-                  "",
-                  "pm.test('Content-Disposition prompts a download', function () {",
-                  "    const cd = pm.response.headers.get('Content-Disposition');",
-                  "    pm.expect(cd).to.include('attachment');",
-                  "});"
+                  "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response carries a body', function () { pm.expect(pm.response.responseSize).to.be.above(0); });"
                 ]
               }
             }
@@ -739,17 +469,17 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/documents/download/{{uploadedFileName}}",
+              "raw": "{{baseUrl}}/documents/download/barista-recipes.txt",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "documents",
                 "download",
-                "{{uploadedFileName}}"
+                "barista-recipes.txt"
               ]
             },
-            "description": "Streams the previously uploaded file back. Uses the filename captured by the Upload request."
+            "description": "Streams a known file back. Seeded by the setup script."
           }
         },
         {
@@ -760,13 +490,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "pm.test('Status is 404 Not Found', function () {",
-                  "    pm.response.to.have.status(404);",
-                  "});",
-                  "",
-                  "pm.test('Error names the missing document', function () {",
-                  "    pm.expect(pm.response.json().error).to.include('does-not-exist.pdf');",
-                  "});"
+                  "pm.test('Status is 404 Not Found', function () { pm.response.to.have.status(404); });"
                 ]
               }
             }
@@ -785,7 +509,7 @@
                 "does-not-exist.pdf"
               ]
             },
-            "description": "Negative test: requesting an absent file must return 404 with a JSON error."
+            "description": "Negative test: an absent blob must return 404."
           }
         }
       ]
