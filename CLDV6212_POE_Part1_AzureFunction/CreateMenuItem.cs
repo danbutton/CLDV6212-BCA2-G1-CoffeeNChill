@@ -13,34 +13,38 @@ namespace CLDV6212_POE_Part1_AzureFunction
     public class CreateMenuItem
     {
         [Function("CreateMenuItem")]
-
         public async Task<HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "menuItems")]
-        HttpRequestData req)
+             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "menuitems")]
+            HttpRequestData req)
         {
-            var MenuItem = await JsonSerializer.DeserializeAsync<MenuItems>(
-            req.Body,
-            new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            var menuItem = await JsonSerializer.DeserializeAsync<MenuItems>(
+                req.Body,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
 
             var connectionString =
                 Environment.GetEnvironmentVariable("AzureWebJobsStorage");
 
             var tableClient =
-                new TableClient(connectionString, "Menu Items");
+                new TableClient(connectionString, "MenuItems");
 
             await tableClient.CreateIfNotExistsAsync();
 
-            MenuItem!.PartitionKey = "Menu Items";
+            menuItem!.PartitionKey = "Items";
 
-            await tableClient.AddEntityAsync(MenuItem);
+            if (string.IsNullOrWhiteSpace(menuItem.RowKey))
+            {
+                menuItem.RowKey = Guid.NewGuid().ToString();
+            }
+
+            await tableClient.AddEntityAsync(menuItem);
 
             var response =
                 req.CreateResponse(HttpStatusCode.Created);
 
-            await response.WriteAsJsonAsync(MenuItem);
+            await response.WriteAsJsonAsync(menuItem);
 
             return response;
         }
