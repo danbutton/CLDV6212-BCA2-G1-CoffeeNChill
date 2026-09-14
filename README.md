@@ -14,7 +14,7 @@ A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handw
 | Segment | Member | Link |
 |---|---|---|
 | Architecture & data model | Kyle | [Watch](https://youtu.be/OoT5CZL1-W4) |
-| Menu endpoints & error handling | Evan | _link to be added_ |
+| Menu endpoints & error handling | Evan | https://youtu.be/K6vx4qFSxgI |
 | Blob Storage & document endpoints | Saveer | _link to be added_ |
 | Containerisation, Docker Hub & API testing | Daniel Button | [Watch](https://youtu.be/Je9jZIyTPik) |
 
@@ -398,7 +398,7 @@ editing a single request.
 |---|---|---|---|---|
 | Daniel Button | ST10491642 | Multi-stage Dockerfile, Docker Hub publishing, Postman suite, project consolidation, README | _TBC_ | [Watch](https://youtu.be/Je9jZIyTPik) |
 | Kyle | ST10473747 | Digital Menu and Document Management | 17 | [Watch](https://youtu.be/OoT5CZL1-W4) |
-| Evan | ST10482786 | Menu endpoint adjustments, validation | _TBC_ | _TBC_ |
+| Evan | ST10482786 | Menu endpoint adjustments, validation | 5 | [Watch](https://youtu.be/K6vx4qFSxgI) |
 | Saveer Singh | ST10487403 | Blob Storage repository, upload/list/download endpoints | _TBC_ | _TBC_ |
 
 ## AI Usage Declaration
@@ -476,6 +476,12 @@ Postman Inc. (2026) *Writing tests in Postman*. Postman Learning Center. Availab
 https://learning.postman.com/docs/writing-scripts/test-scripts/ (Accessed: 13 September 2026).
 
 The Independent Institute of Education (2026) *Addendum: POE — CLDV6212/w*. School of Computer Science.
+
+Kumar, B. 2023. Azure FunctionsRest API Example C#. [online] 8 October
+Available at: <https://azurelessons.com/how-to-create-api-with-azure-functions/> [Date
+Accessed 11 September 2026]
+Microsoft. 2026. Azure Functions C# HTTP Trigger using Azure Developer CLI. [online]
+25 January Available at: <https://learn.microsoft.com/en-us/samples/azure-samples/functionsquickstart-dotnet-azd/starter-http-trigger-csharp/> [Date Accessed 11 September 2026]
 
 <!-- ═══════════ END ALL ═══════════ -->
 
