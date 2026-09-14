@@ -397,7 +397,7 @@ editing a single request.
 | Member | Student No. | Responsibilities | Commits | Video segment |
 |---|---|---|---|---|
 | Daniel Button | ST10491642 | Multi-stage Dockerfile, Docker Hub publishing, Postman suite, project consolidation, README | _TBC_ | [Watch](https://youtu.be/Je9jZIyTPik) |
-| Kyle | ST10473747 | MenuItem model, Table Storage service, five menu HTTP functions | _TBC_ | _TBC_ |
+| Kyle | ST10473747 | Digital Menu and Document Management | 17 | [Watch](https://youtu.be/OoT5CZL1-W4) |
 | Evan | ST10482786 | Menu endpoint adjustments, validation | _TBC_ | _TBC_ |
 | Saveer Singh | ST10487403 | Blob Storage repository, upload/list/download endpoints | _TBC_ | _TBC_ |
 
