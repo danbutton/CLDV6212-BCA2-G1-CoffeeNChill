@@ -14,7 +14,7 @@ A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handw
 | Segment | Member | Link |
 |---|---|---|
 | Architecture & data model | Kyle | [Watch](https://youtu.be/OoT5CZL1-W4) |
-| Menu endpoints & error handling | Evan | https://youtu.be/K6vx4qFSxgI |
+| Menu endpoints & error handling | Evan | [Watch](https://youtu.be/K6vx4qFSxgI) |
 | Blob Storage & document endpoints | Saveer | _link to be added_ |
 | Containerisation, Docker Hub & API testing | Daniel Button | [Watch](https://youtu.be/Je9jZIyTPik) |
 
