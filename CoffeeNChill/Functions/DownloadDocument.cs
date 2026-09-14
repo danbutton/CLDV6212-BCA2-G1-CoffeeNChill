@@ -1,8 +1,8 @@
 ﻿using CoffeeNChill.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
 using System.Net;
-
 
 namespace CoffeeNChill.Functions
 {
@@ -16,10 +16,14 @@ namespace CoffeeNChill.Functions
         */
 
         private readonly DocumentStorageService _documentStorageService;
+        private readonly ILogger<DownloadDocument> _logger;
 
-        public DownloadDocument(DocumentStorageService documentStorageService)
+        public DownloadDocument(
+            DocumentStorageService documentStorageService,
+            ILogger<DownloadDocument> logger)
         {
             _documentStorageService = documentStorageService;
+            _logger = logger;
         }
 
         [Function("DownloadDocument")]
@@ -28,46 +32,72 @@ namespace CoffeeNChill.Functions
                 Route = "documents/download/{fileName}")] HttpRequestData req,
             string fileName)
         {
-            //Get the Blob Storage container
-            var containerClient =
-                _documentStorageService.GetContainerClient();
-
-            //Get the requested blob
-            var blobClient = containerClient.GetBlobClient(fileName);
-
-            //Check if the file exists
-            if (!await blobClient.ExistsAsync())
+            try
             {
-                var notFound = req.CreateResponse(HttpStatusCode.NotFound);
+                //Get the Blob Storage container
+                var containerClient =
+                    _documentStorageService.GetContainerClient();
 
-                await notFound.WriteStringAsync(
-                    "Document not found.");
+                //Get the requested blob
+                var blobClient = containerClient.GetBlobClient(fileName);
 
-                return notFound;
-            }
+                //Check if the file exists
+                if (!await blobClient.ExistsAsync())
+                {
+                    _logger.LogWarning(
+                        "Document {FileName} was not found.",
+                        fileName);
 
-            //Download the blob
-            var download = await blobClient.DownloadAsync();
+                    var notFound = req.CreateResponse(HttpStatusCode.NotFound);
 
-            var response = req.CreateResponse(HttpStatusCode.OK);
+                    await notFound.WriteStringAsync(
+                        "Document not found.");
 
-            //Set the file name in the response
-            response.Headers.Add(
-                "Content-Disposition",
-                $"attachment; filename=\"{fileName}\"");
+                    return notFound;
+                }
 
-            //Set the content type if one is available
-            if (!string.IsNullOrEmpty(download.Value.Details.ContentType))
-            {
+                //Download the blob
+                var download = await blobClient.DownloadAsync();
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+
+                //Set the file name in the response
                 response.Headers.Add(
-                    "Content-Type",
-                    download.Value.Details.ContentType);
+                    "Content-Disposition",
+                    $"attachment; filename=\"{fileName}\"");
+
+                //Set the content type if one is available
+                if (!string.IsNullOrEmpty(download.Value.Details.ContentType))
+                {
+                    response.Headers.Add(
+                        "Content-Type",
+                        download.Value.Details.ContentType);
+                }
+
+                //Copy the blob contents into the response
+                await download.Value.Content.CopyToAsync(response.Body);
+
+                _logger.LogInformation(
+                    "Document {FileName} downloaded successfully.",
+                    fileName);
+
+                return response;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "An error occurred while downloading document {FileName}.",
+                    fileName);
 
-            //Copy the blob contents into the response
-            await download.Value.Content.CopyToAsync(response.Body);
+                var errorResponse = req.CreateResponse(
+                    HttpStatusCode.InternalServerError);
 
-            return response;
+                await errorResponse.WriteStringAsync(
+                    "An error occurred while downloading the document.");
+
+                return errorResponse;
+            }
         }
     }
 }
