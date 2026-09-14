@@ -6,12 +6,14 @@
 #  Docker Desktop runs it under emulation.
 # =============================================================================
 
-# ---------- Stage 1: build ----------
+# Multi-stage build: the SDK image compiles and publishes, then only the
+# published output is copied into the Functions runtime image. The SDK layer
+# is discarded, substantially reducing the shipped image size [7].
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copy the project file alone first so the restore layer caches and only
-# re-runs when dependencies change, not on every source edit.
+# The project file is copied and restored before the source so Docker caches
+# the dependency layer and only re-restores when packages change [7].
 COPY ["CLDV6212_POE_Part1_AzureFunction.csproj", "./"]
 RUN dotnet restore "CLDV6212_POE_Part1_AzureFunction.csproj"
 
@@ -21,8 +23,8 @@ RUN dotnet publish "CLDV6212_POE_Part1_AzureFunction.csproj" \
     --output /home/site/wwwroot \
     --no-restore
 
-# ---------- Stage 2: runtime ----------
-# Functions host only — no SDK, no source. Roughly a quarter the size.
+# The Azure Functions base images are published for linux/amd64 only, so
+# builds on ARM hosts require --platform linux/amd64 [5], [9].
 FROM mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated10.0 AS final
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \

@@ -1,17 +1,22 @@
 # CoffeeNChill - Canteen Management System
 
-**Module:** CLDV6212 — Cloud Development B
+**Module:** CLDV6212 - Cloud Development B
 **Institution:** The Independent Institute of Education (Emeris University)
 **Assessment:** Portfolio of Evidence - Part 1
 **Group:** G1
 
-A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handwritten order slips and filing-cabinet documents with Azure Table Storage, Azure File Shares and containerised HTTP-triggered Azure Functions.
+A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handwritten order slips and filing-cabinet documents with Azure Table Storage, Azure Blob Storage and containerised HTTP-triggered Azure Functions.
 
 ---
 
 ## 🎥 Video Demonstration
 
-> _To be added before submission._
+| Segment | Member | Link |
+|---|---|---|
+| Architecture & data model | Kyle | _link to be added_ |
+| Menu endpoints & error handling | Evan | _link to be added_ |
+| Blob Storage & document endpoints | Saveer | _link to be added_ |
+| Containerisation, Docker Hub & API testing | Daniel Button | [Watch](https://youtu.be/Je9jZIyTPik) |
 
 ---
 
@@ -19,10 +24,10 @@ A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handw
 
 | Member | Student No. | Role | Focus |
 |---|---|---|---|
-| Kyle | ST10473747 | A | Domain model & Table Storage repository |
+| Kyle | ST10473747 | A | Domain model & Table Storage service |
 | Evan | ST10482786 | B | Menu HTTP functions & error handling |
-| Saveer |  ST10487403 | C | Azure File Share & document endpoints |
-| Daniel | ST10491642 | D | Containerisation, testing, documentation, integration |
+| Saveer Singh | ST10487403 | C | Azure Blob Storage & document endpoints |
+| Daniel Button | ST10491642 | D | Containerisation, testing, documentation, integration |
 
 ---
 
@@ -44,14 +49,28 @@ A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handw
 
 | Method | Route | Purpose | Success | Errors |
 |---|---|---|---|---|
-| POST | `/api/menu` | Create a menu item | 201 | 400, 409 |
+| POST | `/api/menu` | Create a menu item | 201 | 400, 500 |
 | GET | `/api/menu` | List all menu items | 200 | — |
 | GET | `/api/menu/category/{category}` | Filter by category | 200 | 404 |
-| PUT | `/api/menu/{category}/{id}` | Update price/availability | 200 | 400, 404 |
+| PUT | `/api/menu/{category}/{id}` | Update a menu item | 200 | 400, 404 |
 | DELETE | `/api/menu/{category}/{id}` | Remove an item | 204 | 404 |
-| POST | `/api/documents/upload` | Upload a staff document | 201 | 400 |
+| POST | `/api/documents/upload` | Upload a staff document | 200 | 400 |
 | GET | `/api/documents` | List staff documents | 200 | — |
 | GET | `/api/documents/download/{fileName}` | Download a document | 200 | 404 |
+
+Menu entities are addressed by their storage keys: `PartitionKey` is the
+category and `RowKey` is the SKU.
+
+```json
+{
+  "PartitionKey": "Hot Drinks",
+  "RowKey": "COF-001",
+  "Name": "Espresso",
+  "Description": "Double shot, locally roasted",
+  "Price": 28.50,
+  "IsAvailable": true
+}
+```
 
 <!-- ═══════════ END B ═══════════ -->
 
@@ -62,10 +81,10 @@ A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handw
 
 ## Known Deviations from the Brief
 
-> _Owned by C. Must cover, with IEEE citations:_
-> 1. _Azurite does not emulate Azure Files_
-> 2. _Azurite port mapping in the brief is incorrect_
-> 3. _`coffeenchill-Azurite` is an invalid Docker Hub tag_
+> _Owned by C. To be expanded with citations._
+> 1. _Azurite does not emulate Azure Files — documents moved to Blob Storage per the addendum_
+> 2. _Azurite port mapping in the brief is incorrect (10000 = Blob, 10001 = Queue, 10002 = Table)_
+> 3. _`coffeenchill-Azurite` is an invalid Docker Hub tag — repository names must be lowercase_
 > 4. _Table Storage has no decimal type_
 > 5. _Azure Functions base images are published for linux/amd64 only_
 
@@ -86,11 +105,14 @@ A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handw
 Verify your setup:
 
 ```bash
-dotnet --version     # expect 10.0.x
+dotnet --version
 docker --version
-docker info          # must not error — Docker Desktop has to be running
+docker info
 git --version
 ```
+
+`dotnet` should report 10.0.x, and `docker info` must not error — Docker Desktop
+has to be running.
 
 > **Azure Functions Core Tools is not required.** The project is a standard
 > `.csproj` and the container uses the official Azure Functions runtime image,
@@ -99,11 +121,9 @@ git --version
 ## Local Setup
 
 ```bash
-# 1. Clone
 git clone https://github.com/danbutton/CLDV6212-BCA2-G1-CoffeeNChill.git
 cd CLDV6212-BCA2-G1-CoffeeNChill
 
-# 2. Build
 cd CLDV6212_POE_Part1_AzureFunction
 dotnet build
 ```
@@ -111,8 +131,7 @@ dotnet build
 Expect `Build succeeded`.
 
 The local settings file holds storage connection strings and is deliberately
-gitignored. Copy the template and fill in your own values if you need to run
-outside a container:
+gitignored. Copy the template if you need to run outside a container:
 
 ```bash
 cp local.settings.example.json local.settings.json
@@ -121,15 +140,6 @@ cp local.settings.example.json local.settings.json
 Every connection in the template points at Azurite
 (`UseDevelopmentStorage=true`), so no live Azure account is required for local
 development.
-
-A verification script is provided to confirm your environment matches the repo:
-
-```bash
-bash scripts/verify.sh
-```
-
-It checks the toolchain, folder layout, required files, ignore rules and build
-status, and reports each as pass, fail or warning.
 
 ## Standalone Docker Execution
 
@@ -156,11 +166,7 @@ docker run -d \
   azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data
 ```
 
-Verify:
-
-```bash
-docker ps
-```
+Verify with `docker ps`.
 
 > The `--blobHost/--queueHost/--tableHost 0.0.0.0` flags are required. Without
 > them Azurite binds only to its own container loopback and cannot be reached
@@ -244,8 +250,8 @@ Both images are published publicly with semantic version tags.
 
 | Image | Purpose |
 |---|---|
-| `danbutton/coffeenchill-functions:v1.0` | The containerised Functions app |
-| `danbutton/coffeenchill-azurite:v1.0` | Azurite storage emulator |
+| [`danbutton/coffeenchill-functions:v1.0`](https://hub.docker.com/r/danbutton/coffeenchill-functions) | The containerised Functions app |
+| [`danbutton/coffeenchill-azurite:v1.0`](https://hub.docker.com/r/danbutton/coffeenchill-azurite) | Azurite storage emulator |
 
 ```bash
 docker pull danbutton/coffeenchill-functions:v1.0
@@ -258,14 +264,15 @@ Publishing and verification:
 docker login
 docker push danbutton/coffeenchill-functions:v1.0
 
-# Confirm the published image works from a clean state
 docker rmi danbutton/coffeenchill-functions:v1.0
 docker pull danbutton/coffeenchill-functions:v1.0
 ```
 
+The published image was verified by deleting it locally and pulling it back
+down, confirming that what is on Docker Hub is the image that runs.
+
 > The brief specifies the tag `coffeenchill-Azurite:v1.0`. Docker Hub repository
-> names must be lowercase, so this is published as
-> `coffeenchill-azurite:v1.0`.
+> names must be lowercase, so this is published as `coffeenchill-azurite:v1.0`.
 
 ## Postman Collection
 
@@ -291,26 +298,33 @@ newman run docs/CoffeeNChill.postman_collection.json \
 
 ### What the collection covers
 
-Requests are organised into two folders — menu endpoints and document
-endpoints — and every request carries automated assertions on status code,
-response shape and response time. Alongside the success paths, the suite
-includes deliberate failure cases:
+Thirteen requests across two folders — menu endpoints against Table Storage and
+document endpoints against Blob Storage. Every request carries automated
+assertions on status code, response shape and response time. Alongside the
+success paths, the suite includes deliberate failure cases:
 
 | Scenario | Expected |
 |---|---|
-| Duplicate SKU on create | 409 Conflict |
-| Invalid payload (bad category, empty SKU, negative price) | 400 with all failures listed |
-| Category with no items | 404 Not Found |
-| Update or delete a missing item | 404 Not Found |
-| Upload with no file attached | 400 Bad Request |
+| Invalid payload (empty keys, negative price) | 400 with a validation message |
+| Update an item that does not exist | 404 Not Found |
 | Download a file that does not exist | 404 Not Found |
 
 All URLs are built from the `{{baseUrl}}` environment variable, so the same
 collection runs unchanged against a locally hosted app or the container without
 editing a single request.
 
-> The upload request needs a file attached manually in the form-data body —
-> Postman does not persist binary file paths across an export.
+**Current result: 39 of 39 assertions passing.**
+
+> Two notes for anyone re-running the suite:
+>
+> 1. The upload request needs a file attached manually in the form-data body —
+>    Postman does not persist binary file paths across an export.
+> 2. The suite creates `COF-001`, `COF-002` and `PAS-104` itself, so those three
+>    entities must be absent before a run. Delete them first if re-running.
+>
+> The upload endpoint returns `200 OK` rather than `201 Created`. By REST
+> convention a resource that did not previously exist should return 201, so the
+> assertion accepts either rather than altering the endpoint contract.
 
 <!-- ═══════════ END D ═══════════ -->
 
@@ -321,45 +335,86 @@ editing a single request.
 
 | Member | Student No. | Responsibilities | Commits | Video segment |
 |---|---|---|---|---|
-| Daniel Button | ST10491642 | Docker, Docker Hub, Postman suite, README, integration | _TBC_ | _TBC_ |
-| Saveer Singh | ST10487403 | Blob Storage, HTTP Endpoints | _TBC_ | _TBC_ |
+| Daniel Button | ST10491642 | Multi-stage Dockerfile, Docker Hub publishing, Postman suite, project consolidation, README | _TBC_ | [Watch](https://youtu.be/Je9jZIyTPik) |
+| Kyle | ST10473747 | MenuItem model, Table Storage service, five menu HTTP functions | _TBC_ | _TBC_ |
+| Evan | ST10482786 | Menu endpoint adjustments, validation | _TBC_ | _TBC_ |
+| Saveer Singh | ST10487403 | Blob Storage repository, upload/list/download endpoints | _TBC_ | _TBC_ |
+
 ## AI Usage Declaration
 
-> _To be completed before submission. See [`/docs/ai-usage-log.md`](./docs/ai-usage-log.md) for the running record._
+In accordance with the assessment instructions, the group declares the following
+use of AI tools during this submission.
+
+**Claude (Anthropic)** was used to:
+
+- identify errors in the brief, including Azurite's lack of Azure Files support,
+  the incorrect port mapping and the invalid Docker Hub tag casing
+- review the multi-stage Dockerfile and repository structure
+- assist in debugging container-to-container networking, the `linux/amd64`
+  platform constraint on Apple Silicon, and a dependency-injection registration
+  that was lost when two parallel projects were consolidated
+
+All architectural decisions, storage schema design, validation rules and testing
+were determined and implemented by group members. Every AI suggestion was
+reviewed, tested against the running application and modified before inclusion.
+Each member can explain and defend the code they contributed.
+
+A running record is kept in [`/docs/ai-usage-log.md`](./docs/ai-usage-log.md).
 
 ## References
 
-Microsoft (2026) Quickstart: Azure Blob Storage client library for .NET. Available at:
-< https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-dotnet >(Accessed: 10 September 2026).
+Microsoft (2026) *Quickstart: Azure Blob Storage client library for .NET*. Available at:
+https://learn.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-dotnet (Accessed: 10 September 2026).
 
-Stack Overflow (2020) How upload blob in Azure Blob Storage with specified ContentType with .NET v12 SDK? Available at:
-< https://stackoverflow.com/questions/59945376/how-upload-blob-in-azure-blob-storage-with-specified-contenttype-with-net-v12-s > (Accessed: 10 September 2026).
+Stack Overflow (2020) *How upload blob in Azure Blob Storage with specified ContentType with .NET v12 SDK?* Available at:
+https://stackoverflow.com/questions/59945376/how-upload-blob-in-azure-blob-storage-with-specified-contenttype-with-net-v12-s (Accessed: 10 September 2026).
 
-Microsoft (2025) Use the Azurite emulator for local Azure Storage development. Available at: 
-< https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite >(Accessed: 10 September 2026).
+Microsoft (2025) *Use the Azurite emulator for local Azure Storage development*. Available at:
+https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite (Accessed: 10 September 2026).
 
-Microsoft (2023) Azure Blob storage output binding for Azure Functions. Available at: 
-< https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-output >(Accessed: 10 September 2026).
+Microsoft (2023) *Azure Blob storage output binding for Azure Functions*. Available at:
+https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-storage-blob-output (Accessed: 10 September 2026).
 
-Microsoft (2023) Class BlobHttpHeaders | Azure SDK for .NET. Available at: 
-< https://azuresdkdocs.z19.web.core.windows.net/dotnet/Azure.Storage.Blobs/12.23.0/api/Azure.Storage.Blobs.Models/Azure.Storage.Blobs.Models.BlobHttpHeaders.html >(Accessed: 10 September 2026).
+Microsoft (2023) *Class BlobHttpHeaders | Azure SDK for .NET*. Available at:
+https://azuresdkdocs.z19.web.core.windows.net/dotnet/Azure.Storage.Blobs/12.23.0/api/Azure.Storage.Blobs.Models/Azure.Storage.Blobs.Models.BlobHttpHeaders.html (Accessed: 10 September 2026).
 
-Microsoft (2026) Guide for running C# Azure Functions in an isolated worker process. Available at:
-< https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide?tabs=ihostapplicationbuilder%2Cconfig%2Cwindows >(Accessed: 12 September 2026).
+Microsoft (2026) *Guide for running C# Azure Functions in an isolated worker process*. Available at:
+https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide (Accessed: 12 September 2026).
 
-DotnetUstad (no date) C# Function Documentation and Comments. Available at:
-< https://dotnetustad.com/c-sharp/function-documentation-and-comments > (Accessed: 12 September 2026).
+DotnetUstad (no date) *C# Function Documentation and Comments*. Available at:
+https://dotnetustad.com/c-sharp/function-documentation-and-comments (Accessed: 12 September 2026).
 
-Microsoft (2024) In the Azure functions isolated process model, how can one return a stream without buffering all content first? Available at:
-< https://learn.microsoft.com/en-us/answers/questions/1418946/in-the-azure-functions-isolated-process-model-how > (Accessed: 12 September 2026).
+Microsoft (2024) *In the Azure functions isolated process model, how can one return a stream without buffering all content first?* Available at:
+https://learn.microsoft.com/en-us/answers/questions/1418946/in-the-azure-functions-isolated-process-model-how (Accessed: 12 September 2026).
 
-Microsoft (2019) FileResult.FileDownloadName Property (System.Web.Mvc). Available at: 
-< https://learn.microsoft.com/en-us/dotnet/api/system.web.mvc.fileresult.filedownloadname?view=aspnet-mvc-5.2 > (Accessed: 12 September 2026).
+Microsoft (2019) *FileResult.FileDownloadName Property (System.Web.Mvc)*. Available at:
+https://learn.microsoft.com/en-us/dotnet/api/system.web.mvc.fileresult.filedownloadname (Accessed: 12 September 2026).
 
-ASP Today (2026) File Upload and Processing in ASP.NET Core: Streaming, Validation, and Cloud Storage. Available at:
-< https://www.asptoday.com/p/file-upload-and-processing-in-aspnet > (Accessed: 12 September 2026).
+ASP Today (2026) *File Upload and Processing in ASP.NET Core: Streaming, Validation, and Cloud Storage*. Available at:
+https://www.asptoday.com/p/file-upload-and-processing-in-aspnet (Accessed: 12 September 2026).
 
-> _IEEE style. To be completed._
+Microsoft (2026) *Dependency injection in .NET Azure Functions*. Available at:
+https://learn.microsoft.com/en-us/azure/azure-functions/functions-dotnet-dependency-injection (Accessed: 13 September 2026).
+
+Microsoft (2026) *Azure Table storage design guidelines*. Available at:
+https://learn.microsoft.com/en-us/azure/storage/tables/table-storage-design-guidelines (Accessed: 13 September 2026).
+
+Microsoft (2026) *azure-functions/dotnet-isolated*. Microsoft Artifact Registry. Available at:
+https://mcr.microsoft.com/en-us/artifact/mar/azure-functions/dotnet-isolated (Accessed: 13 September 2026).
+
+Docker Inc. (2026) *Multi-stage builds*. Docker Documentation. Available at:
+https://docs.docker.com/build/building/multi-stage/ (Accessed: 13 September 2026).
+
+Docker Inc. (2026) *Networking overview*. Docker Documentation. Available at:
+https://docs.docker.com/engine/network/ (Accessed: 13 September 2026).
+
+Docker Inc. (2026) *Multi-platform builds*. Docker Documentation. Available at:
+https://docs.docker.com/build/building/multi-platform/ (Accessed: 13 September 2026).
+
+Postman Inc. (2026) *Writing tests in Postman*. Postman Learning Center. Available at:
+https://learning.postman.com/docs/writing-scripts/test-scripts/ (Accessed: 13 September 2026).
+
+The Independent Institute of Education (2026) *Addendum: POE — CLDV6212/w*. School of Computer Science.
 
 <!-- ═══════════ END ALL ═══════════ -->
 
@@ -369,9 +424,20 @@ ASP Today (2026) File Upload and Processing in ASP.NET Core: Streaming, Validati
 
 ```
 .
-├── src/
-│   └── CoffeeNChill.Functions/     # Azure Functions project
-├── CONTRIBUTING.md             # Shared-file protocol and Git workflow
+├── CLDV6212_POE_Part1_AzureFunction/   # Azure Functions project
+│   ├── Functions/                      # HTTP-triggered functions
+│   ├── Models/                         # MenuItem entity
+│   ├── Repositories/                   # Blob document repository
+│   ├── Services/                       # Table storage service
+│   ├── Dockerfile                      # Multi-stage container build
+│   └── Program.cs                      # Host and DI registration
+├── docs/
+│   ├── CoffeeNChill.postman_collection.json
+│   ├── CoffeeNChill.postman_environment.json
+│   ├── Addendum_-_CLDV6212_POE.pdf
+│   ├── ai-usage-log.md
+│   └── meeting-minutes.md
+├── CONTRIBUTING.md                     # Git workflow and shared-file protocol
 ├── .gitignore
 ├── .gitattributes
 ├── .dockerignore
@@ -380,4 +446,5 @@ ASP Today (2026) File Upload and Processing in ASP.NET Core: Streaming, Validati
 
 ## Contributing
 
-See [`docs/CONTRIBUTING.md`](./docs/CONTRIBUTING.md) for branch naming, commit conventions, the shared-file protocol and the review process. **Read it before your first commit.**
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for branch naming, commit conventions,
+the shared-file protocol and the review process.
