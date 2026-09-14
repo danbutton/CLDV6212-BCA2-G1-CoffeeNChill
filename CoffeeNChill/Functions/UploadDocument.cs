@@ -15,6 +15,12 @@ namespace CoffeeNChill.Functions
         * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.storage.blobs.blobclient.uploadasync?view=azure-dotnet
         */
 
+        /*Reference
+        * Author: Microsoft
+        * Title: LoggerExtensions Class
+        * Link: https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.loggerextensions?view=net-8.0
+        */
+
         private readonly DocumentStorageService _documentStorageService;
         private readonly ILogger<UploadDocument> _logger;
 
@@ -62,6 +68,12 @@ namespace CoffeeNChill.Functions
 
                     return badRequest;
                 }
+
+                /*Reference
+                 * Author: Microsoft
+                 * Title: BlobHttpHeaders Class
+                 * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.storage.blobs.models.blobhttpheaders?view=azure-dotnet
+                 */
 
                 //Determine the MIME type from the request header or file extension
                 string contentType = string.Empty;
