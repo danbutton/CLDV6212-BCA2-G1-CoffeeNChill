@@ -1,221 +1,78 @@
-# CoffeeNChill - Canteen Management System
+# CoffeeNChill — Canteen Management System
 
-**Module:** CLDV6212 - Cloud Development B
-**Institution:** The Independent Institute of Education (Emeris University)
-**Assessment:** Portfolio of Evidence - Part 1
-**Group:** G1
-
-A cloud-enabled microservices system replacing CoffeeNChill's paper menus, handwritten order slips and filing-cabinet documents with Azure Table Storage, Azure Blob Storage and containerised HTTP-triggered Azure Functions.
+**CLDV6212 Cloud Development B · Portfolio of Evidence Part 1 · Group G1**
+The Independent Institute of Education (Emeris University)
 
 ---
 
-## 🎥 Video Demonstration
+## About
 
-| Segment | Member | Link |
-|---|---|---|
-| Architecture & data model | Kyle | [Watch](https://youtu.be/OoT5CZL1-W4) |
-| Menu endpoints & error handling | Evan | [Watch](https://youtu.be/K6vx4qFSxgI) |
-| Blob Storage & document endpoints | Saveer | _link to be added_ |
-| Containerisation, Docker Hub & API testing | Daniel Button | [Watch](https://youtu.be/Je9jZIyTPik) |
+CoffeeNChill canteen is upgrading to Azure cloud services. Real-time menu data
+will use Azure Table Storage, while staff documents live on Azure Blob Storage for
+remote access. These features run as HTTP-triggered Azure Functions in Docker
+containers, integrated with a local storage emulator for development.
 
 ---
 
-## Team
+## Demo
 
-| Member | Student No. | Role | Focus |
-|---|---|---|---|
-| Kyle | ST10473747 | A | Domain model & Table Storage service |
-| Evan | ST10482786 | B | Menu HTTP functions & error handling |
-| Saveer Singh | ST10487403 | C | Azure Blob Storage & document endpoints |
-| Daniel Button | ST10491642 | D | Containerisation, testing, documentation, integration |
+**[Watch the demonstration](https://youtu.be/U1IrvKKaiac)**
+
+Covers the architecture, the data model, every endpoint, the containerised
+application, the published Docker images, and the automated test suite.
 
 ---
 
-<!-- ═══════════ OWNER: A — architecture & data model ═══════════ -->
-## Architecture Overview
+## Setup
 
-> _Owned by A. Diagram to be added at `/docs/architecture.png`._
+### 1. Install
 
-## Data Model
-
-> _Owned by A._
-
-<!-- ═══════════ END A ═══════════ -->
-
-<!-- ═══════════ OWNER: B — API endpoints ═══════════ -->
-## API Endpoint Reference
-
-> _Owned by B._
-
-| Method | Route | Purpose | Success | Errors |
-|---|---|---|---|---|
-| POST | `/api/menu` | Create a menu item | 201 | 400, 500 |
-| GET | `/api/menu` | List all menu items | 200 | — |
-| GET | `/api/menu/category/{category}` | Filter by category | 200 | 404 |
-| PUT | `/api/menu/{category}/{id}` | Update a menu item | 200 | 400, 404 |
-| DELETE | `/api/menu/{category}/{id}` | Remove an item | 204 | 404 |
-| POST | `/api/documents/upload` | Upload a staff document | 200 | 400 |
-| GET | `/api/documents` | List staff documents | 200 | — |
-| GET | `/api/documents/download/{fileName}` | Download a document | 200 | 404 |
-
-Menu entities are addressed by their storage keys: `PartitionKey` is the
-category and `RowKey` is the SKU.
-
-```json
-{
-  "PartitionKey": "Hot Drinks",
-  "RowKey": "COF-001",
-  "Name": "Espresso",
-  "Description": "Double shot, locally roasted",
-  "Price": 28.50,
-  "IsAvailable": true
-}
-```
-
-<!-- ═══════════ END B ═══════════ -->
-
-<!-- ═══════════ OWNER: C — file storage & deviations ═══════════ -->
-## Staff Document Storage
-
-> _Owned by C._
-
-Staff documents are stored in an **Azure Blob Storage** container named
-`staff-docs`. Per the Sept 2026 POE addendum, this replaces the original Azure
-Files design; Azurite does not emulate the Files service.
-
-The layer sits behind `IDocumentRepository` and is implemented in
-`BlobDocumentRepository`, registered as a singleton in `Program.cs`. Three HTTP
-endpoints expose it:
-
-| Method | Route | Behaviour |
-|---|---|---|
-| POST | `/api/documents/upload` | Streams a multipart file to `staff-docs` |
-| GET | `/api/documents` | Lists blobs with name, size, last-modified, content-type |
-| GET | `/api/documents/download/{fileName}` | Streams the blob back; 404 if missing |
-
-**Design choices**
-
-- **Streaming, not buffering** — `UploadAsync(Stream)` and
-  `DownloadStreamingAsync()` keep large PDFs out of memory.
-- **No manual chunking** — the SDK blocks uploads automatically at 4 MiB.
-- **Single round-trip listing** — `GetBlobsAsync()` returns size, date and
-  content-type in `BlobItem.Properties`.
-- **Container bootstrap** — `CreateIfNotExists()` runs in the constructor, so a
-  fresh Azurite works with zero setup.
-- **Errors logged, not swallowed** — every method logs via `ILogger` and
-  rethrows for the HTTP layer to translate into a 500.
-
-Locally the layer runs against **Azurite** on the same connection string as the
-MenuItems table, so no live Azure account is required.
-
-## Known Deviations from the Brief
-Four points where the brief disagrees with the tooling it specifies. Documented
-here so the marker can see they were deliberate.
-
-### 1. Azurite does not emulate Azure Files
-
-The brief asked for **Azure File Shares**, but Azurite only supports Blob,
-Queue and Table, the Files service is not covered. Any call to a
-`ShareClient` will fail at runtime. This was fixed by the Sept 2026 addendum
-that moved docs to **Azure Blob Storage**, which Azurite is a complete
-emulation of. As the layer sits behind `IDocumentRepository`, the swap did not
-require changes to the HTTP contract.
-
-### 2. Azurite port mapping in the brief is incorrect
-
-The brief labels port 10000 as Tables, 10001 as Blobs and 10002 as Queues, this
-is inverted. The correct mapping is:
-
-| Port | Service |
+| Tool | Purpose |
 |---|---|
-| 10000 | Blob |
-| 10001 | Queue |
-| 10002 | Table |
+| [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) | Builds the project |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop) | Runs the app and the storage emulator |
+| [Postman](https://www.postman.com/downloads/) | Runs the API tests |
+| [Azure Storage Explorer](https://azure.microsoft.com/features/storage-explorer/) | Inspects the stored data |
+| Git | Clones the repository |
 
-The `docker run` ports themselves are fine; the description is misleading.
-
-### 3. `coffeenchill-Azurite` is an invalid Docker Hub tag
-
-Docker Hub requires **lowercase** repo and tag names; uppercase is rejected at
-push time. We publish `coffeenchill-azurite:v1.0` (all lowercase), and
-`coffeenchill-functions:v1.0`.
-
-### 4. Table Storage has no decimal type
-
-Azure Table Storage only supports `Int64`, `Double`, `Boolean`, `DateTime`,
-`Guid`, `String`, and `Binary` no `decimal`. Prices are stored as `double`
-because the brief lists `Price` as "Double/Decimal". Acceptable for a canteen
-menu. **Not** acceptable for financial ledgers where `decimal` rounding matters.
-Here we make explicit the trade-off we are faced with.
-
-
-<!-- ═══════════ END C ═══════════ -->
-
-<!-- ═══════════ OWNER: D — setup, docker, testing ═══════════ -->
-## Prerequisites
-
-| Tool | Version | Purpose |
-|---|---|---|
-| .NET SDK | 10.0 | Build the Functions project |
-| Docker Desktop | Latest | Azurite emulator and container builds |
-| Azure Storage Explorer | Latest | Inspect tables and blob containers |
-| Postman | Latest | Run the API test collection |
-| Newman | Latest | Optional CLI runner for the same collection |
-| Git | 2.40+ | Version control |
-
-Verify your setup:
+Check they work:
 
 ```bash
 dotnet --version
-docker --version
 docker info
 git --version
 ```
 
 `dotnet` should report 10.0.x, and `docker info` must not error — Docker Desktop
-has to be running.
+needs to be running.
 
-> **Azure Functions Core Tools is not required.** The project is a standard
-> `.csproj` and the container uses the official Azure Functions runtime image,
-> which supplies the host. `dotnet build` is all that is needed locally.
+Azure Functions Core Tools is **not** required. The container supplies the
+Functions host.
 
-## Local Setup
+### 2. Clone and build
 
 ```bash
-git clone https://github.com/danbutton/CLDV6212-BCA2-G1-CoffeeNChill.git
-cd CLDV6212-BCA2-G1-CoffeeNChill
-
-cd CLDV6212_POE_Part1_AzureFunction
+git clone https://github.com/EMWCCN/cldv6212-2026-g1-part-1-danbutton.git
+cd cldv6212-2026-g1-part-1-danbutton/CLDV6212_POE_Part1_AzureFunction
 dotnet build
 ```
 
-Expect `Build succeeded`.
+You should see `Build succeeded`.
 
-The local settings file holds storage connection strings and is deliberately
-gitignored. Copy the template if you need to run outside a container:
+---
 
-```bash
-cp local.settings.example.json local.settings.json
-```
+## Running the system
 
-Every connection in the template points at Azurite
-(`UseDevelopmentStorage=true`), so no live Azure account is required for local
-development.
-
-## Standalone Docker Execution
-
-Part 1 uses `docker run` only — no Docker Compose.
-
-### 1. Create a user-defined network
+### 1. Create the network
 
 ```bash
 docker network create coffeenchill-net
 ```
 
-Containers can only resolve one another by name on a user-defined network.
-This is how the Functions container reaches Azurite without orchestration.
+Two containers need to find each other and Part 1 doesn't permit Docker Compose.
+A user-defined network gives them name resolution through Docker's embedded DNS.
 
-### 2. Start Azurite
+### 2. Start the storage emulator
 
 ```bash
 docker run -d \
@@ -227,42 +84,28 @@ docker run -d \
   azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --location /data
 ```
 
-Verify with `docker ps`.
+The `0.0.0.0` host flags are required — by default Azurite binds only to its own
+container loopback and nothing outside can reach it.
 
-> The `--blobHost/--queueHost/--tableHost 0.0.0.0` flags are required. Without
-> them Azurite binds only to its own container loopback and cannot be reached
-> from another container.
->
-> Note also that the port mapping differs from the brief: the actual assignment
-> is **10000 = Blob, 10001 = Queue, 10002 = Table**. All three are published.
+Ports are **10000 Blob, 10001 Queue, 10002 Table**.
 
-### 3. Build the Functions image
+### 3. Build the application image
 
 ```bash
 cd CLDV6212_POE_Part1_AzureFunction
 docker build --platform linux/amd64 -t danbutton/coffeenchill-functions:v1.0 .
 ```
 
-> **`--platform linux/amd64` is required on Apple Silicon.** The Azure Functions
-> base images are published for `linux/amd64` only, so an ARM host must build
-> and run them under emulation. Omitting the flag fails with
-> `no match for platform in manifest`.
+The Dockerfile builds in two stages. The .NET SDK image compiles and publishes,
+then only the published output is copied into the Azure Functions runtime image,
+so the SDK never ships. The project file is restored before the source is copied,
+which lets Docker cache the dependency layer and only recompile when code
+actually changes.
 
-The Dockerfile is multi-stage: the .NET 10 SDK image compiles and publishes the
-project, then only the published output is copied into the Azure Functions
-runtime image. The SDK layer is discarded, so it never ships.
+`--platform linux/amd64` is required on Apple Silicon — the Azure Functions base
+images are published for Intel only, so Docker runs them under emulation.
 
-The `.csproj` is copied and restored before the source is added, so Docker
-caches the dependency layer and only re-runs the restore when packages actually
-change rather than on every code edit.
-
-Check the built image:
-
-```bash
-docker images | grep coffeenchill
-```
-
-### 4. Run the Functions container
+### 4. Run the application
 
 ```bash
 AZ="DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;"
@@ -280,24 +123,22 @@ docker run -d \
   danbutton/coffeenchill-functions:v1.0
 ```
 
-Watch the host start and list its routes:
+Confirm the routes loaded:
 
 ```bash
-docker logs -f coffeenchill-functions
+docker logs coffeenchill-functions | grep "Mapped function route"
 ```
 
-`Ctrl+C` leaves the log view; the container keeps running.
+Eight routes should be listed.
 
-> **Why the connection strings are written out in full.**
-> `UseDevelopmentStorage=true` expands to `127.0.0.1`. Inside the Functions
-> container that address means *the Functions container itself*, not Azurite.
-> Because both containers share `coffeenchill-net`, Docker's embedded DNS
-> resolves the hostname `azurite`, so the Blob, Queue and Table endpoints are
-> given explicitly against that name.
->
-> `Eby8vdM02...` is Azurite's published public development key, not a secret.
+The connection string is written out in full rather than using
+`UseDevelopmentStorage=true`, because that shorthand resolves to `127.0.0.1` —
+which inside the Functions container refers to that container, not Azurite.
+Pointing at the hostname `azurite` works because both containers share the
+network. The account key shown is Azurite's published development key and is not
+a secret.
 
-### Teardown
+### Stopping
 
 ```bash
 docker rm -f coffeenchill-functions azurite
@@ -305,122 +146,211 @@ docker volume rm azurite-data
 docker network rm coffeenchill-net
 ```
 
-## Docker Hub Images
+---
+
+## API
+
+| Method | Route | Returns |
+|---|---|---|
+| POST | `/api/menu` | 201 · 400 on invalid input |
+| GET | `/api/menu` | 200 — all items |
+| GET | `/api/menu/category/{category}` | 200 · 404 if the category is empty |
+| PUT | `/api/menu/{category}/{id}` | 200 · 400 on invalid input · 404 if missing |
+| DELETE | `/api/menu/{category}/{id}` | 204 · 404 if missing |
+| POST | `/api/documents/upload` | 200 · 400 if no file supplied |
+| GET | `/api/documents` | 200 — all documents |
+| GET | `/api/documents/download/{fileName}` | 200 · 404 if missing |
+
+Menu entities use their storage keys directly: `PartitionKey` is the category
+and `RowKey` is the SKU. Partitioning by category means filtering a whole
+category is a single-partition query, which is the cheapest read Table Storage
+offers.
+
+### Try it
+
+**Add a menu item**
+
+```bash
+curl -X POST http://localhost:7071/api/menu \
+  -H "Content-Type: application/json" \
+  -d '{"PartitionKey":"Hot Drinks","RowKey":"COF-001","Name":"Espresso","Description":"Double shot, locally roasted","Price":28.50,"IsAvailable":true}'
+```
+
+**List everything**
+
+```bash
+curl http://localhost:7071/api/menu
+```
+
+**Filter by category**
+
+```bash
+curl "http://localhost:7071/api/menu/category/Hot%20Drinks"
+```
+
+**Update an item**
+
+```bash
+curl -X PUT "http://localhost:7071/api/menu/Hot%20Drinks/COF-001" \
+  -H "Content-Type: application/json" \
+  -d '{"Name":"Espresso","Description":"Double shot, locally roasted","Price":32.00,"IsAvailable":false}'
+```
+
+**Delete an item**
+
+```bash
+curl -X DELETE "http://localhost:7071/api/menu/Hot%20Drinks/COF-001"
+```
+
+**Upload a document**
+
+```bash
+echo "Barista recipe sheet" > recipe.txt
+curl -X POST http://localhost:7071/api/documents/upload -F "file=@recipe.txt"
+```
+
+**List documents**
+
+```bash
+curl http://localhost:7071/api/documents
+```
+
+**Download a document**
+
+```bash
+curl -O -J http://localhost:7071/api/documents/download/recipe.txt
+```
+
+---
+
+## Testing
+
+The Postman collection and environment are in [`/docs`](./docs). Import both,
+select the **CoffeeNChill — Local (Azurite)** environment, and run the collection.
+
+From the command line:
+
+```bash
+npm install -g newman
+newman run docs/CoffeeNChill.postman_collection.json \
+  -e docs/CoffeeNChill.postman_environment.json
+```
+
+Thirteen requests across two folders, with **39 assertions, all passing**. Every
+request checks status code, response shape and response time. Alongside the
+success paths, the suite tests failure cases explicitly: an invalid payload
+returns 400 with a validation message, updating a missing item returns 404, and
+requesting a document that doesn't exist returns 404.
+
+All URLs are built from a `{{baseUrl}}` environment variable, so the same
+collection runs unchanged against a locally hosted app or the container.
+
+Two notes when re-running: the upload request needs a file attached manually in
+the form-data body, since Postman does not persist file paths across an export;
+and the suite creates `COF-001`, `COF-002` and `PAS-104` itself, so those three
+must be absent before a run.
+
+---
+
+## Docker images
 
 Both images are published publicly with semantic version tags.
 
-| Image | Purpose |
+| Image | |
 |---|---|
-| [`danbutton/coffeenchill-functions:v1.0`](https://hub.docker.com/r/danbutton/coffeenchill-functions) | The containerised Functions app |
-| [`danbutton/coffeenchill-azurite:v1.0`](https://hub.docker.com/r/danbutton/coffeenchill-azurite) | Azurite storage emulator |
+| [`danbutton/coffeenchill-functions:v1.0`](https://hub.docker.com/r/danbutton/coffeenchill-functions) | The application |
+| [`danbutton/coffeenchill-azurite:v1.0`](https://hub.docker.com/r/danbutton/coffeenchill-azurite) | Storage emulator |
 
 ```bash
 docker pull danbutton/coffeenchill-functions:v1.0
 docker pull danbutton/coffeenchill-azurite:v1.0
 ```
 
-Publishing and verification:
-
-```bash
-docker login
-docker push danbutton/coffeenchill-functions:v1.0
-
-docker rmi danbutton/coffeenchill-functions:v1.0
-docker pull danbutton/coffeenchill-functions:v1.0
-```
-
-The published image was verified by deleting it locally and pulling it back
+Each published image was verified by deleting it locally and pulling it back
 down, confirming that what is on Docker Hub is the image that runs.
 
-> The brief specifies the tag `coffeenchill-Azurite:v1.0`. Docker Hub repository
-> names must be lowercase, so this is published as `coffeenchill-azurite:v1.0`.
+---
 
-## Postman Collection
+## Project status
 
-The exported collection and environment live in [`/docs`](./docs).
+**Working now**
 
-### Desktop app
+- Menu items stored in Azure Table Storage, partitioned by category
+- Create, list, filter by category, update and delete
+- Staff documents stored in Azure Blob Storage with MIME validation
+- Upload, list and download endpoints
+- All eight endpoints running in a Docker container against Azurite
+- Automated Postman suite — 39 assertions, all passing
+- Both images published publicly to Docker Hub
 
-1. Import both JSON files into Postman
-2. Select the **CoffeeNChill — Local (Azurite)** environment
-3. Confirm `baseUrl` points at your running host (`http://localhost:7071/api`)
-4. Collection → **Run**
+**Where we are**
 
-### Command line
+Part 1 of 3 complete. The storage layer and HTTP API work end to end,
+containerised and published.
 
-The same collection runs headlessly via Newman:
+**Planned**
 
-```bash
-npm install -g newman
+- Docker Compose orchestration
+- Queue-based order processing
+- A front end consuming the API
+- Deployment to a hosted environment
+- CI/CD pipeline
 
-newman run docs/CoffeeNChill.postman_collection.json \
-  -e docs/CoffeeNChill.postman_environment.json
-```
+---
 
-### What the collection covers
+## Deviations from the brief
 
-Thirteen requests across two folders — menu endpoints against Table Storage and
-document endpoints against Blob Storage. Every request carries automated
-assertions on status code, response shape and response time. Alongside the
-success paths, the suite includes deliberate failure cases:
+**Azurite does not emulate Azure Files.** The emulator supports Blob, Queue and
+Table only. Staff documents are therefore stored in Azure Blob Storage, which the
+module addendum subsequently confirmed.
 
-| Scenario | Expected |
-|---|---|
-| Invalid payload (empty keys, negative price) | 400 with a validation message |
-| Update an item that does not exist | 404 Not Found |
-| Download a file that does not exist | 404 Not Found |
+**The Azurite port mapping in the brief is incorrect.** The actual assignment is
+10000 Blob, 10001 Queue, 10002 Table.
 
-All URLs are built from the `{{baseUrl}}` environment variable, so the same
-collection runs unchanged against a locally hosted app or the container without
-editing a single request.
+**`coffeenchill-Azurite` is not a valid Docker Hub tag.** Repository names must
+be lowercase, so the emulator image is published as `coffeenchill-azurite:v1.0`.
 
-**Current result: 39 of 39 assertions passing.**
+**Azure Table Storage has no decimal type.** Prices are stored as `double`.
 
-> Two notes for anyone re-running the suite:
->
-> 1. The upload request needs a file attached manually in the form-data body —
->    Postman does not persist binary file paths across an export.
-> 2. The suite creates `COF-001`, `COF-002` and `PAS-104` itself, so those three
->    entities must be absent before a run. Delete them first if re-running.
->
-> The upload endpoint returns `200 OK` rather than `201 Created`. By REST
-> convention a resource that did not previously exist should return 201, so the
-> assertion accepts either rather than altering the endpoint contract.
+**Azure Functions base images are published for linux/amd64 only.** Builds on ARM
+hardware require `--platform linux/amd64`, which Docker satisfies through
+emulation.
 
-<!-- ═══════════ END D ═══════════ -->
+---
 
-<!-- ═══════════ ALL — one row each, do not edit other rows ═══════════ -->
-## Team Contributions
+## Team
 
-> _Each member completes their own row. Commit counts from `git shortlog -sn --all`._
+| Member | Student No. | Contribution |
+|---|---|---|
+| Kyle | ST10473747 | Menu item model, Table Storage service, five menu endpoints, MIME validation and error logging |
+| Evan | ST10482786 | Menu endpoint adjustments, GET classes, validation |
+| Saveer Singh | ST10487403 | Blob Storage repository, upload, list and download endpoints |
+| Daniel Button | ST10491642 | Multi-stage Dockerfile, Docker Hub publishing, Postman test suite, project consolidation, documentation |
 
-| Member | Student No. | Responsibilities | Commits | Video segment |
-|---|---|---|---|---|
-| Daniel Button | ST10491642 | Multi-stage Dockerfile, Docker Hub publishing, Postman suite, project consolidation, README | _TBC_ | [Watch](https://youtu.be/Je9jZIyTPik) |
-| Kyle | ST10473747 | Digital Menu and Document Management | 17 | [Watch](https://youtu.be/OoT5CZL1-W4) |
-| Evan | ST10482786 | Menu endpoint adjustments, validation | 5 | [Watch](https://youtu.be/K6vx4qFSxgI) |
-| Saveer Singh | ST10487403 | Blob Storage repository, upload/list/download endpoints | _TBC_ | _TBC_ |
+Individual contributions are visible in the commit history and in each member's
+branch.
 
-## AI Usage Declaration
+---
 
-In accordance with the assessment instructions, the group declares the following
-use of AI tools during this submission.
+## AI usage
 
-**Claude (Anthropic)** was used to:
+AI tools were used during this project and are disclosed here as required by the
+assessment instructions.
 
-- identify errors in the brief, including Azurite's lack of Azure Files support,
-  the incorrect port mapping and the invalid Docker Hub tag casing
-- review the multi-stage Dockerfile and repository structure
-- assist in debugging container-to-container networking, the `linux/amd64`
-  platform constraint on Apple Silicon, and a dependency-injection registration
-  that was lost when two parallel projects were consolidated
+**Claude (Anthropic)** was used to review the Dockerfile and repository
+structure, to help identify errors in the brief — Azurite's lack of Azure Files
+support, the incorrect port mapping and the invalid Docker Hub tag — and to
+assist in debugging container-to-container networking, the Intel-only platform
+constraint on Apple Silicon, and a dependency-injection registration that was
+lost when two parallel projects were merged into one.
 
-All architectural decisions, storage schema design, validation rules and testing
-were determined and implemented by group members. Every AI suggestion was
-reviewed, tested against the running application and modified before inclusion.
-Each member can explain and defend the code they contributed.
+All design decisions, the storage schema and the validation logic were determined
+and implemented by group members. Every suggestion was tested against the running
+application before being kept.
 
-A running record is kept in [`/docs/ai-usage-log.md`](./docs/ai-usage-log.md).
+Chat transcript: ADD_YOUR_CLAUDE_SHARE_LINK_HERE
+
+---
 
 ## References
 
@@ -477,41 +407,17 @@ https://learning.postman.com/docs/writing-scripts/test-scripts/ (Accessed: 13 Se
 
 The Independent Institute of Education (2026) *Addendum: POE — CLDV6212/w*. School of Computer Science.
 
-Kumar, B. 2023. Azure FunctionsRest API Example C#. [online] 8 October
-Available at: <https://azurelessons.com/how-to-create-api-with-azure-functions/> [Date
-Accessed 11 September 2026]
-Microsoft. 2026. Azure Functions C# HTTP Trigger using Azure Developer CLI. [online]
-25 January Available at: <https://learn.microsoft.com/en-us/samples/azure-samples/functionsquickstart-dotnet-azd/starter-http-trigger-csharp/> [Date Accessed 11 September 2026]
-
-<!-- ═══════════ END ALL ═══════════ -->
-
 ---
 
-## Repository Structure
+## Repository layout
 
 ```
-.
-├── CLDV6212_POE_Part1_AzureFunction/   # Azure Functions project
-│   ├── Functions/                      # HTTP-triggered functions
-│   ├── Models/                         # MenuItem entity
-│   ├── Repositories/                   # Blob document repository
-│   ├── Services/                       # Table storage service
-│   ├── Dockerfile                      # Multi-stage container build
-│   └── Program.cs                      # Host and DI registration
-├── docs/
-│   ├── CoffeeNChill.postman_collection.json
-│   ├── CoffeeNChill.postman_environment.json
-│   ├── Addendum_-_CLDV6212_POE.pdf
-│   ├── ai-usage-log.md
-│   └── meeting-minutes.md
-├── CONTRIBUTING.md                     # Git workflow and shared-file protocol
-├── .gitignore
-├── .gitattributes
-├── .dockerignore
-└── README.md
+CLDV6212_POE_Part1_AzureFunction/   Azure Functions project
+  Functions/                        HTTP-triggered endpoints
+  Models/                           MenuItem entity
+  Repositories/                     Blob document repository
+  Services/                         Table storage service
+  Dockerfile                        Multi-stage container build
+  Program.cs                        Host and dependency injection
+docs/                               Postman collection, environment, addendum
 ```
-
-## Contributing
-
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for branch naming, commit conventions,
-the shared-file protocol and the review process.
