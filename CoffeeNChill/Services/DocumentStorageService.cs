@@ -5,7 +5,14 @@ namespace CoffeeNChill.Services
 {    
         public class DocumentStorageService
         {
-            private readonly BlobContainerClient _containerClient;
+
+        /*Reference
+        * Author:Microsoft Ignite
+        * Title: BlobContainerClient Class
+        * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.storage.blobs.blobcontainerclient?view=azure-dotnet
+        */
+
+        private readonly BlobContainerClient _containerClient;
 
             public DocumentStorageService(IConfiguration configuration)
             {

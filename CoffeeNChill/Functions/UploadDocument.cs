@@ -7,6 +7,13 @@ namespace CoffeeNChill.Functions
 {
     public class UploadDocument
     {
+
+        /*Reference
+        * Author:Microsoft Ignite
+        * Title: BlobClient.UploadAsync Method
+        * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.storage.blobs.blobclient.uploadasync?view=azure-dotnet
+        */
+
         private readonly DocumentStorageService _documentStorageService;
 
         public UploadDocument(DocumentStorageService documentStorageService)

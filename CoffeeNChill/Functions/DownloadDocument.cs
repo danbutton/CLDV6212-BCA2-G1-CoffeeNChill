@@ -8,6 +8,13 @@ namespace CoffeeNChill.Functions
 {
     public class DownloadDocument
     {
+
+        /*Reference
+        * Author:Microsoft Ignite
+        * Title: BlobBaseClient.ExistsAsync(CancellationToken) Method
+        * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.storage.blobs.specialized.blobbaseclient.existsasync?view=azure-dotnet
+        */
+
         private readonly DocumentStorageService _documentStorageService;
 
         public DownloadDocument(DocumentStorageService documentStorageService)

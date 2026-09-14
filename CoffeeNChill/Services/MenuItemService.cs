@@ -6,6 +6,14 @@ namespace CoffeeNChill.Services
 {
     public class MenuItemService
     {
+
+        /*Reference
+        * Author:Microsoft Ignite
+        * Title: TableClient Class
+        * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.data.tables.tableclient?view=azure-dotnet
+        */
+
+
         //Client used to communicate with Azure Table Storage
         private readonly TableClient _tableClient;
 

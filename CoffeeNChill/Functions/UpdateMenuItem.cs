@@ -9,8 +9,15 @@ namespace CoffeeNChill.Functions
 {    
         public class UpdateMenuItem
         {
-            //Service used to retrieve and update menu items in Azure Table Storage
-            private readonly MenuItemService _menuItemService;
+
+        /*Reference
+        * Author:Microsoft Ignite
+        * Title: TableClient.UpdateEntityAsync<T> Method
+        * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.data.tables.tableclient.updateentityasync?view=azure-dotnethttps://learn.microsoft.com/en-us/dotnet/api/azure.data.tables.tableclient.updateentityasync?view=azure-dotnet
+        */
+
+        //Service used to retrieve and update menu items in Azure Table Storage
+        private readonly MenuItemService _menuItemService;
 
             public UpdateMenuItem(MenuItemService menuItemService)
             {

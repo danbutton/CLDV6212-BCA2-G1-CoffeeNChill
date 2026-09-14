@@ -8,6 +8,13 @@ namespace CoffeeNChill.Functions
 {
     public class ListDocuments
     {
+
+        /*Reference
+        * Author:Microsoft Ignite
+        * Title: BlobContainerClient.GetBlobsAsync(GetBlobsOptions, CancellationToken) Method
+        * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.storage.blobs.blobcontainerclient.getblobsasync?view=azure-dotnet
+        */
+
         private readonly DocumentStorageService _documentStorageService;
 
         public ListDocuments(DocumentStorageService documentStorageService)

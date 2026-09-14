@@ -9,6 +9,19 @@ namespace CoffeeNChill.Functions
 {
     public class CreateMenuItem
     {
+
+        /*Reference
+        * Author:Microsoft Ignite
+        * Title: Azure Functions HTTP trigger
+        * Link: https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook-trigger?tabs=python-v2%2Cisolated-process%2Cnodejs-v4%2Cfunctionsv2&pivots=programming-language-csharp
+        */
+
+        /*Reference
+        * Author:Microsoft Ignite
+        * Title: TableClient.AddEntityAsync<T>(T, CancellationToken) Method
+        * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.data.tables.tableclient.addentityasync?view=azure-dotnet
+        */
+
         //Service used to save the menu item to Azure Table Storage
         private readonly MenuItemService _menuItemService;
 
