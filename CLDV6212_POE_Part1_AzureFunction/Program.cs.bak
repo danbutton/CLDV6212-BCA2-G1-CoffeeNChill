@@ -8,6 +8,11 @@ using Microsoft.Extensions.Hosting;
 using OpenTelemetry;
 
 var builder = FunctionsApplication.CreateBuilder(args);
+<<<<<<< HEAD:CLDV6212_POE_Part1_AzureFunction/Program.cs.bak
+=======
+builder.Services.AddSingleton<MenuItemService>();
+builder.Services.AddSingleton<DocumentStorageService>();
+>>>>>>> origin/Kyle-ST10473747:CoffeeNChill/Program.cs
 
 // Enables the ASP.NET Core HTTP integration so functions can bind
 // HttpRequest and return IActionResult.

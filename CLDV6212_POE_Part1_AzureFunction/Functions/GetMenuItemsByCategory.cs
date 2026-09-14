@@ -8,8 +8,15 @@ namespace CoffeeNChill.Functions
 {    
         public class GetMenuItemsByCategory
         {
-            //Service used to retrieve menu items from Azure Table Storage
-            private readonly MenuItemService _menuItemService;
+
+            /*Reference
+            * Author:Microsoft Ignite
+            * Title: TableClient.QueryAsync Method
+            * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.data.tables.tableclient.queryasync?view=azure-dotnet
+            */
+
+        //Service used to retrieve menu items from Azure Table Storage
+        private readonly MenuItemService _menuItemService;
 
             public GetMenuItemsByCategory(MenuItemService menuItemService)
             {

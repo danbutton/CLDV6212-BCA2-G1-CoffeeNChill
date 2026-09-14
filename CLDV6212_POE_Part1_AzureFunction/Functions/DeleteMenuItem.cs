@@ -9,8 +9,15 @@ namespace CoffeeNChill.Functions
 {    
         public class DeleteMenuItem
         {
-            //Service used to delete menu items from Azure Table Storage
-            private readonly MenuItemService _menuItemService;
+
+        /*Reference
+        * Author:Microsoft Ignite
+        * Title: TableClient.DeleteEntityAsync Method
+        * Link: https://learn.microsoft.com/en-us/dotnet/api/azure.data.tables.tableclient.deleteentityasync?view=azure-dotnet
+        */
+
+        //Service used to delete menu items from Azure Table Storage
+        private readonly MenuItemService _menuItemService;
 
             public DeleteMenuItem(MenuItemService menuItemService)
             {

@@ -6,10 +6,18 @@
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "launchUrl": "http://localhost:30013",
       "containerRunArguments": "--init",
+<<<<<<< HEAD:CLDV6212_POE_Part1_AzureFunction/Properties/launchSettings.json
       "httpPort": 33368,
       "useSSL": false
+=======
+      "httpPort": 30013,
+      "useSSL": false,
+      "environmentVariables": {
+        "ASPNETCORE_URLS": "http://+:80"
+      }
+>>>>>>> origin/Kyle-ST10473747:CoffeeNChill/Properties/launchSettings.json
     }
   }
 }
