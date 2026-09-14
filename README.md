@@ -79,14 +79,75 @@ category and `RowKey` is the SKU.
 
 > _Owned by C._
 
-## Known Deviations from the Brief
+Staff documents are stored in an **Azure Blob Storage** container named
+`staff-docs`. Per the Sept 2026 POE addendum, this replaces the original Azure
+Files design; Azurite does not emulate the Files service.
 
-> _Owned by C. To be expanded with citations._
-> 1. _Azurite does not emulate Azure Files — documents moved to Blob Storage per the addendum_
-> 2. _Azurite port mapping in the brief is incorrect (10000 = Blob, 10001 = Queue, 10002 = Table)_
-> 3. _`coffeenchill-Azurite` is an invalid Docker Hub tag — repository names must be lowercase_
-> 4. _Table Storage has no decimal type_
-> 5. _Azure Functions base images are published for linux/amd64 only_
+The layer sits behind `IDocumentRepository` and is implemented in
+`BlobDocumentRepository`, registered as a singleton in `Program.cs`. Three HTTP
+endpoints expose it:
+
+| Method | Route | Behaviour |
+|---|---|---|
+| POST | `/api/documents/upload` | Streams a multipart file to `staff-docs` |
+| GET | `/api/documents` | Lists blobs with name, size, last-modified, content-type |
+| GET | `/api/documents/download/{fileName}` | Streams the blob back; 404 if missing |
+
+**Design choices**
+
+- **Streaming, not buffering** — `UploadAsync(Stream)` and
+  `DownloadStreamingAsync()` keep large PDFs out of memory.
+- **No manual chunking** — the SDK blocks uploads automatically at 4 MiB.
+- **Single round-trip listing** — `GetBlobsAsync()` returns size, date and
+  content-type in `BlobItem.Properties`.
+- **Container bootstrap** — `CreateIfNotExists()` runs in the constructor, so a
+  fresh Azurite works with zero setup.
+- **Errors logged, not swallowed** — every method logs via `ILogger` and
+  rethrows for the HTTP layer to translate into a 500.
+
+Locally the layer runs against **Azurite** on the same connection string as the
+MenuItems table, so no live Azure account is required.
+
+## Known Deviations from the Brief
+Four points where the brief disagrees with the tooling it specifies. Documented
+here so the marker can see they were deliberate.
+
+### 1. Azurite does not emulate Azure Files
+
+The brief asked for **Azure File Shares**, but Azurite only supports Blob,
+Queue and Table, the Files service is not covered. Any call to a
+`ShareClient` will fail at runtime. This was fixed by the Sept 2026 addendum
+that moved docs to **Azure Blob Storage**, which Azurite is a complete
+emulation of. As the layer sits behind `IDocumentRepository`, the swap did not
+require changes to the HTTP contract.
+
+### 2. Azurite port mapping in the brief is incorrect
+
+The brief labels port 10000 as Tables, 10001 as Blobs and 10002 as Queues, this
+is inverted. The correct mapping is:
+
+| Port | Service |
+|---|---|
+| 10000 | Blob |
+| 10001 | Queue |
+| 10002 | Table |
+
+The `docker run` ports themselves are fine; the description is misleading.
+
+### 3. `coffeenchill-Azurite` is an invalid Docker Hub tag
+
+Docker Hub requires **lowercase** repo and tag names; uppercase is rejected at
+push time. We publish `coffeenchill-azurite:v1.0` (all lowercase), and
+`coffeenchill-functions:v1.0`.
+
+### 4. Table Storage has no decimal type
+
+Azure Table Storage only supports `Int64`, `Double`, `Boolean`, `DateTime`,
+`Guid`, `String`, and `Binary` no `decimal`. Prices are stored as `double`
+because the brief lists `Price` as "Double/Decimal". Acceptable for a canteen
+menu. **Not** acceptable for financial ledgers where `decimal` rounding matters.
+Here we make explicit the trade-off we are faced with.
+
 
 <!-- ═══════════ END C ═══════════ -->
 
