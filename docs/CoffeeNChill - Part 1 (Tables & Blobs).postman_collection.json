@@ -1,0 +1,541 @@
+{
+  "info": {
+    "_postman_id": "d6ceaeaf-7e8f-428a-b1c7-ce4e48a98ae0",
+    "name": "CoffeeNChill - Part 1 (Tables & Blobs)",
+    "description": "CLDV6212 Part 1 test suite.\n\nAligned to the implemented API: menu entities use PartitionKey (category) and RowKey (SKU); list endpoints return bare arrays.\n\nPer the POE addendum, staff documents are stored in Azure Blob Storage rather than an Azure File Share, because Azurite does not emulate the Files service.\n\nSetup:\n1. Import this collection and the environment.\n2. Select the CoffeeNChill - Local (Azurite) environment.\n3. Attach a file to Documents > Upload Staff Document.\n4. Collection > Run.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "58159986",
+    "_collection_link": "https://go.postman.co/collection/58159986-d6ceaeaf-7e8f-428a-b1c7-ce4e48a98ae0?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Menu - Table Storage",
+      "item": [
+        {
+          "name": "Create Menu Item (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Entity is echoed back', function () {",
+                  "    const b = pm.response.json();",
+                  "    pm.expect(b.PartitionKey).to.eql('Hot Drinks');",
+                  "    pm.expect(b.RowKey).to.eql('COF-001');",
+                  "    pm.expect(b.Name).to.eql('Espresso');",
+                  "});",
+                  "pm.test('Price is numeric', function () { pm.expect(pm.response.json().Price).to.be.a('number'); });"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "packages": {},
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PartitionKey\": \"Hot Drinks\",\n  \"RowKey\": \"COF-001\",\n  \"Name\": \"Espresso\",\n  \"Description\": \"Double shot, locally roasted\",\n  \"Price\": 28.5,\n  \"IsAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            },
+            "description": "Creates a menu entity. PartitionKey = category, RowKey = SKU."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Menu Item - Cappuccino (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', function () { pm.response.to.have.status(201); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PartitionKey\": \"Hot Drinks\",\n  \"RowKey\": \"COF-002\",\n  \"Name\": \"Cappuccino\",\n  \"Description\": \"Espresso with steamed milk and thick foam\",\n  \"Price\": 36.0,\n  \"IsAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Menu Item - Croissant (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201 Created', function () { pm.response.to.have.status(201); });",
+                  "pm.test('Lands in the Pastries partition', function () { pm.expect(pm.response.json().PartitionKey).to.eql('Pastries'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PartitionKey\": \"Pastries\",\n  \"RowKey\": \"PAS-104\",\n  \"Name\": \"Almond Croissant\",\n  \"Description\": \"All-butter with toasted almonds\",\n  \"Price\": 42.0,\n  \"IsAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Menu Item - invalid payload (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400 Bad Request', function () { pm.response.to.have.status(400); });",
+                  "pm.test('Validation message returned', function () { pm.expect(pm.response.text().length).to.be.above(0); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"PartitionKey\": \"\",\n  \"RowKey\": \"\",\n  \"Name\": \"\",\n  \"Description\": \"\",\n  \"Price\": -5,\n  \"IsAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            },
+            "description": "Negative test: empty keys and a negative price must be rejected."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Menu Items (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Returns an array', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                  "pm.test('At least two items present', function () { pm.expect(pm.response.json().length).to.be.at.least(2); });",
+                  "pm.test('Each item exposes the storage keys', function () {",
+                  "    pm.response.json().forEach(function (i) {",
+                  "        pm.expect(i).to.have.property('PartitionKey');",
+                  "        pm.expect(i).to.have.property('RowKey');",
+                  "        pm.expect(i).to.have.property('Name');",
+                  "        pm.expect(i).to.have.property('Price');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Menu Items By Category (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('All items are in the requested partition', function () {",
+                  "    pm.response.json().forEach(function (i) { pm.expect(i.PartitionKey).to.eql('Hot Drinks'); });",
+                  "});",
+                  "pm.test('Filter narrows the result set', function () { pm.expect(pm.response.json().length).to.be.at.least(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu/category/Hot Drinks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "category",
+                "Hot Drinks"
+              ]
+            },
+            "description": "Filters by PartitionKey - a single-partition query."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Menu Item (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Name\": \"Espresso\",\n  \"Description\": \"Double shot, locally roasted\",\n  \"Price\": 32.0,\n  \"IsAvailable\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu/Hot Drinks/COF-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "Hot Drinks",
+                "COF-001"
+              ]
+            },
+            "description": "Full-object update. Name and Description are required by the API."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Menu Item - missing item (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404 Not Found', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Name\": \"Ghost\",\n  \"Description\": \"Does not exist\",\n  \"Price\": 99.0,\n  \"IsAvailable\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu/Hot Drinks/COF-999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "Hot Drinks",
+                "COF-999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Menu Item (204)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204 No Content', function () { pm.response.to.have.status(204); });",
+                  "pm.test('Body is empty', function () { pm.expect(pm.response.text()).to.be.oneOf(['', null, undefined]); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu/Hot Drinks/COF-002",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "Hot Drinks",
+                "COF-002"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "CRUD against the MenuItems Azure Table."
+    },
+    {
+      "name": "Documents - Azure Blob Storage",
+      "item": [
+        {
+          "name": "Upload Staff Document (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 Created', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "if (pm.response.code === 201) {",
+                  "    try { pm.collectionVariables.set('uploadedFileName', pm.response.json().fileName); } catch (e) {}",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "description": "Attach a local file before running.",
+                  "src": [
+                    "postman-cloud:///1f1afa4d-7a79-4ee0-b0ca-3f9757ea7bfa",
+                    "postman-cloud:///1f1afa4d-7a83-4b20-a159-be78613aee6d"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documents/upload",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                "upload"
+              ]
+            },
+            "description": "Multipart upload into the staff-docs blob container. You must attach a file manually - Postman does not persist binary paths across an export."
+          },
+          "response": []
+        },
+        {
+          "name": "List Staff Documents (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Returns an array', function () { pm.expect(pm.response.json()).to.be.an('array'); });",
+                  "pm.test('Each document reports name, size, date and type', function () {",
+                  "    pm.response.json().forEach(function (d) {",
+                  "        pm.expect(d).to.have.property('fileName');",
+                  "        pm.expect(d).to.have.property('sizeBytes');",
+                  "        pm.expect(d).to.have.property('lastModified');",
+                  "        pm.expect(d).to.have.property('contentType');",
+                  "    });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Download Staff Document (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 OK', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Response carries a body', function () { pm.expect(pm.response.responseSize).to.be.above(0); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documents/download/barista-recipes.txt",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                "download",
+                "barista-recipes.txt"
+              ]
+            },
+            "description": "Streams a known file back. Seeded by the setup script."
+          },
+          "response": []
+        },
+        {
+          "name": "Download - missing file (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404 Not Found', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documents/download/does-not-exist.pdf",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documents",
+                "download",
+                "does-not-exist.pdf"
+              ]
+            },
+            "description": "Negative test: an absent blob must return 404."
+          },
+          "response": []
+        }
+      ],
+      "description": "Upload, list and download against the staff-docs container."
+    }
+  ],
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Response time is under 3000ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "uploadedFileName",
+      "value": "barista-recipes.txt"
+    }
+  ]
+}
